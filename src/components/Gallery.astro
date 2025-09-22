@@ -1,33 +1,26 @@
 ---
-// Import fungsi 'getImage' dari Astro untuk optimasi gambar
 import { getImage } from "astro:assets";
 
-// 1. Menggunakan 'import.meta.glob' untuk mendapatkan path file yang asli
+// Perintah ini secara otomatis membaca semua gambar dari folder /src/assets/galeri
 const semuaGambar = import.meta.glob(
   "/src/assets/galeri/**/*.{png,jpg,jpeg,webp}"
 );
 
-// 2. Kita siapkan array kosong untuk menampung data gambar yang sudah diolah
 const dataGaleri = [];
 
-// 3. Loop melalui setiap 'path' gambar yang ditemukan
 for (const path in semuaGambar) {
-  // Memuat modul gambar secara dinamis
   const modulGambar = await semuaGambar[path]();
+  const namaFile = path.split("/").pop();
+  const namaArtis = namaFile.split(".").slice(0, -1).join(".");
 
-  // 4. Mengekstrak nama artis dari 'path' yang bersih (sebelum diubah Astro)
-  const namaFile = path.split("/").pop(); // Hasilnya: "aaisgraphc.png"
-  const namaArtis = namaFile.split(".").slice(0, -1).join("."); // Hasilnya: "aaisgraphc"
-
-  // Optimalkan gambar menggunakan getImage
+  // Astro memproses setiap gambar dan memberinya URL unik
   const gambarOptimized = await getImage({
-    src: modulGambar.default, // Sumber gambar asli
-    width: 600, // Ubah lebar gambar menjadi 600px
-    format: "webp", // Konversi formatnya ke WebP yang modern
-    quality: 80, // Atur kualitas kompresi
+    src: modulGambar.default,
+    width: 600,
+    format: "webp",
+    quality: 80,
   });
 
-  // Masukkan data yang sudah jadi ke dalam array dataGaleri
   dataGaleri.push({
     artis: `@${namaArtis}`,
     gambar: gambarOptimized,
@@ -37,6 +30,10 @@ for (const path in semuaGambar) {
 
 <section id="galeri" class="gallery">
   <h3 class="section-title">Karya</h3>
+
+  <div class="gallery-filters">
+    {/* ... Tombol filter Anda ... */}
+  </div>
 
   <div class="gallery-grid">
     {

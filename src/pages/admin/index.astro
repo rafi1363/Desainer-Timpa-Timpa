@@ -6,6 +6,11 @@ import Layout from "../../layouts/Layout.astro";
   <main class="admin-page">
     <h2 class="section-title">Halaman Admin Pendaftaran</h2>
 
+    <div class="admin-header">
+      <p class="welcome-message">Selamat datang, <strong>Admin DTT</strong></p>
+      <button id="logout-btn" class="logout-button">Logout</button>
+    </div>
+
     <div class="stats-grid">
       <div class="stat-card">
         <h4>Total Pendaftar</h4>
@@ -64,9 +69,63 @@ import Layout from "../../layouts/Layout.astro";
       </div>
     </div>
   </div>
+  <div id="logout-modal" class="modal">
+    <div class="modal-content">
+      <h3>Konfirmasi Logout</h3>
+      <p style="margin: 1rem 0 2rem; color: #ccc;">
+        Anda yakin ingin keluar dari halaman admin?
+      </p>
+      <div class="modal-actions">
+        <button id="cancel-logout-btn" class="modal-button cancel">Batal</button
+        >
+        <button id="confirm-logout-btn" class="modal-button confirm-danger"
+          >Ya, Logout</button
+        >
+      </div>
+    </div>
+  </div>
 </Layout>
 
 <style>
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end; /* Rata kanan, standar untuk dialog konfirmasi */
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  /* Gaya dasar untuk semua tombol modal */
+  .modal-button {
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+  }
+
+  /* Tombol Batal (Gaya sekunder/outline) */
+  .modal-button.cancel {
+    background-color: transparent;
+    border: 2px solid #555;
+    color: #ccc;
+  }
+  .modal-button.cancel:hover {
+    background-color: #333;
+    border-color: #777;
+    color: white;
+  }
+
+  /* Tombol Konfirmasi Logout (Gaya bahaya/merah) */
+  .modal-button.confirm-danger {
+    background-color: #dc2626;
+    color: white;
+  }
+  .modal-button.confirm-danger:hover {
+    background-color: #b91c1c;
+  }
+
   .admin-page {
     padding: 4rem 2rem;
     max-width: 1400px; /* <-- TAMBAHKAN INI */
@@ -288,10 +347,47 @@ import Layout from "../../layouts/Layout.astro";
     color: #ddd;
     line-height: 1.6;
   }
+  .admin-header {
+    max-width: 1400px;
+    margin: 0 auto 2.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #333;
+  }
+
+  .welcome-message {
+    color: #ccc;
+    font-size: 1.1rem;
+  }
+
+  .welcome-message strong {
+    color: var(--color-accent, #f7e479);
+  }
+
+  .logout-button {
+    background: #991b1b; /* Warna merah gelap, mirip tombol Tolak */
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  .logout-button:hover {
+    background-color: #dc2626; /* Merah terang saat hover */
+  }
 </style>
 
 <script is:inline>
   document.addEventListener("DOMContentLoaded", async () => {
+    const logoutBtn = document.getElementById("logout-btn");
+    const logoutModal = document.getElementById("logout-modal");
+    const cancelLogoutBtn = document.getElementById("cancel-logout-btn");
+    const confirmLogoutBtn = document.getElementById("confirm-logout-btn");
     const tableBody = document.getElementById("applicants-table-body");
     const searchInput = document.getElementById("search-input");
     const sortableHeaders = document.querySelectorAll("th[data-sort]");
@@ -299,6 +395,35 @@ import Layout from "../../layouts/Layout.astro";
     const closeModalButton = detailModal.querySelector(".close-modal-button");
     const statTotal = document.getElementById("stat-total");
     const statBaru = document.getElementById("stat-baru");
+
+    if (logoutBtn && window.netlifyIdentity) {
+      // 1. Saat tombol logout utama di header diklik, BUKA modal
+      logoutBtn.addEventListener("click", () => {
+        logoutModal.classList.add("active");
+      });
+
+      // 2. Saat tombol "Batal" di modal diklik, TUTUP modal
+      cancelLogoutBtn.addEventListener("click", () => {
+        logoutModal.classList.remove("active");
+      });
+
+      // Juga tutup modal jika area gelap di sekitarnya diklik
+      logoutModal.addEventListener("click", (e) => {
+        if (e.target === logoutModal) {
+          logoutModal.classList.remove("active");
+        }
+      });
+
+      // 3. Saat tombol "Ya, Logout" di modal diklik, jalankan proses logout
+      confirmLogoutBtn.addEventListener("click", () => {
+        window.netlifyIdentity.logout();
+      });
+
+      // 4. Setelah proses logout selesai, arahkan ke halaman utama (logika ini tetap sama)
+      window.netlifyIdentity.on("logout", () => {
+        window.location.href = "/";
+      });
+    }
 
     let allApplicants = [];
     let currentSort = { key: "created_at", direction: "desc" };
@@ -329,7 +454,7 @@ import Layout from "../../layouts/Layout.astro";
       tableBody.innerHTML = "";
       if (applicantsToRender.length === 0) {
         tableBody.innerHTML =
-          '<tr class="no-hover"><td colspan="6">Tidak ada pendaftar yang cocok.</td></tr>';
+          '<tr class="no-hover"><td colspan="6">Tidak Ada Pendaftar Baru.</td></tr>';
         return;
       }
       applicantsToRender.forEach((applicant) => {

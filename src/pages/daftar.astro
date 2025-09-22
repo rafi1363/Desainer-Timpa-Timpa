@@ -54,8 +54,10 @@ import Layout from "../layouts/Layout.astro";
           <textarea id="jawaban_lain" name="jawaban_lain" rows="4" required
           ></textarea>
         </div>
-
-        <button type="submit" class="cta-button">Kirim Pendaftaran</button>
+        <div class="form-actions">
+          <a href="/" class="secondary-button">Kembali</a>
+          <button type="submit" class="cta-button">Kirim Pendaftaran</button>
+        </div>
       </form>
       <div id="success-message" style="display:none;"></div>
     </div>
@@ -172,6 +174,20 @@ import Layout from "../layouts/Layout.astro";
 </script>
 
 <style>
+  .form-actions {
+    display: flex;
+    justify-content: flex-end; /* Posisikan tombol ke kanan */
+    align-items: center;
+    gap: 1rem; /* Jarak antar tombol */
+    margin-top: 1.5rem;
+  }
+
+  /* Pastikan tombol sekunder ukurannya pas */
+  .form-actions .secondary-button {
+    padding: 0.8rem 1.5rem; /* Sesuaikan padding agar mirip dengan tombol utama */
+    font-size: 1rem;
+    text-decoration: none;
+  }
   /* Styling khusus untuk halaman ini */
   .registration-page {
     padding: 5rem 2rem;
