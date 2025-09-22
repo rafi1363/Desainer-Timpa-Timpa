@@ -13,6 +13,7 @@ import Layout from "../layouts/Layout.astro";
       </p>
 
       <form id="registration-form" class="registration-form">
+        <input type="hidden" id="karya_url" name="karya_url" />
         <div class="form-group">
           <label for="nama_asli">Nama Panggilan/Nama Asli</label>
           <input type="text" id="nama_asli" name="nama_asli" required />
@@ -37,7 +38,7 @@ import Layout from "../layouts/Layout.astro";
         <div class="form-group">
           <label for="karya">Unggah Satu Karya Terbaikmu</label>
           <input
-            type="hidden"
+            type="file"
             id="karya"
             name="karya"
             accept="image/*"
