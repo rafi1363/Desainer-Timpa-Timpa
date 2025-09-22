@@ -6,12 +6,31 @@ import Layout from "../../layouts/Layout.astro";
   <main class="admin-page">
     <h2 class="section-title">Halaman Admin Pendaftaran</h2>
 
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h4>Total Pendaftar</h4>
+        <p id="stat-total">0</p>
+      </div>
+      <div class="stat-card">
+        <h4>Pendaftar Baru</h4>
+        <p id="stat-baru">0</p>
+      </div>
+    </div>
+
+    <div class="admin-controls">
+      <input
+        type="search"
+        id="search-input"
+        placeholder="Cari nama atau IG pendaftar..."
+      />
+    </div>
+
     <div class="table-container">
       <table>
         <thead>
           <tr>
-            <th>Tanggal Daftar</th>
-            <th>Nama Panggilan/Nama Asli</th>
+            <th data-sort="created_at">Tanggal Daftar</th>
+            <th data-sort="nama_asli">Nama Lengkap</th>
             <th>Instagram</th>
             <th>Nomor Telepon</th>
             <th>Karya</th>
@@ -20,77 +39,302 @@ import Layout from "../../layouts/Layout.astro";
         </thead>
         <tbody id="applicants-table-body">
           <tr>
-            <td colspan="5">Memuat data pendaftar...</td>
+            <td colspan="6">Memuat data pendaftar...</td>
           </tr>
         </tbody>
       </table>
     </div>
   </main>
+
+  <div id="detail-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal-button">&times;</span>
+      <h3 id="modal-nama">Nama Pendaftar</h3>
+      <p id="modal-ig" class="modal-subtitle"></p>
+      <hr class="modal-divider" />
+      <div class="modal-details">
+        <p><strong>Tanggal Daftar:</strong> <span id="modal-tanggal"></span></p>
+        <p><strong>Nomor Telepon:</strong> <span id="modal-telepon"></span></p>
+        <p>
+          <strong>Karya:</strong>
+          <a href="#" id="modal-karya" target="_blank">Lihat Karya</a>
+        </p>
+        <p><strong>Alasan Bergabung:</strong></p>
+        <p id="modal-alasan" class="modal-reason"></p>
+      </div>
+    </div>
+  </div>
 </Layout>
 
 <style>
-  /* ... (style dari sebelumnya, tidak perlu diubah) ... */
   .admin-page {
-    padding: 5rem 2rem;
+    padding: 4rem 2rem;
+    max-width: 1400px; /* <-- TAMBAHKAN INI */
+    margin: 0 auto; /* <-- TAMBAHKAN INI */
   }
+  .section-title {
+    margin-bottom: 2.5rem;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    max-width: 1400px;
+    margin: 0 auto 3rem;
+  }
+  .stat-card {
+    background-color: #151515;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+  .stat-card h4 {
+    color: #aaa;
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .stat-card p {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: white;
+  }
+
+  .admin-controls {
+    max-width: 1400px;
+    margin: 0 auto 2rem;
+  }
+  .admin-page {
+    padding: 4rem 2rem;
+  }
+  .section-title {
+    margin-bottom: 2.5rem;
+  }
+
+  /* KARTU STATISTIK */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    max-width: 1400px;
+    margin: 0 auto 3rem;
+  }
+  .stat-card {
+    background-color: #151515;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+  .stat-card h4 {
+    color: #aaa;
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .stat-card p {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: white;
+  }
+
+  /* KONTROL ADMIN (SEARCH BAR) */
+  .admin-controls {
+    max-width: 1400px;
+    margin: 0 auto 2rem;
+  }
+  #search-input {
+    width: 100%;
+    max-width: 400px;
+    padding: 0.8rem 1rem;
+    background: #1c1c1c;
+    border: 1px solid #444;
+    border-radius: 8px;
+    color: #f0f0f0;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+  }
+  #search-input:focus {
+    outline: none;
+    border-color: var(--color-accent, #f7e479);
+    box-shadow: 0 0 10px rgba(247, 228, 121, 0.2);
+  }
+
+  /* CONTAINER UNTUK TABEL */
   .table-container {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
-    color: #ccc;
+    background-color: #151515;
+    border: 1px solid #333;
+    border-radius: 12px;
     overflow-x: auto;
   }
   table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed;
   }
-  th,
-  td {
-    padding: 1rem;
-    border-bottom: 1px solid #333;
-    text-align: left;
-    white-space: nowrap;
-  }
+
+  /* HEADER TABEL */
   th {
-    color: var(--color-accent, #f7e479);
-  }
-  tr:hover {
+    padding: 1.25rem 1rem;
     background-color: #1a1a1a;
+    color: var(--color-accent, #f7e479);
+    text-align: left;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+  }
+  th:first-child {
+    border-top-left-radius: 11px;
+  }
+  th:last-child {
+    border-top-right-radius: 11px;
+  }
+
+  /* Atur Lebar Kolom */
+  table th:nth-child(1) {
+    width: 15%;
+  }
+  table th:nth-child(2) {
+    width: 15%;
+  }
+  table th:nth-child(3) {
+    width: 15%;
+  }
+  table th:nth-child(4) {
+    width: 10%;
+  }
+  table th:nth-child(5) {
+    width: 10%;
+  }
+  table th:nth-child(6) {
+    width: 35%;
+  }
+
+  /* BARIS TABEL */
+  td {
+    padding: 1.25rem 1rem;
+    border-bottom: 1px solid #2a2a2a;
+    color: #ccc;
+    text-align: left;
+    vertical-align: middle;
+    word-break: break-word;
+  }
+  tbody tr {
+    transition: background-color 0.2s ease;
+  }
+  tbody tr:not(.no-hover):hover {
+    background-color: #202020;
+    cursor: pointer;
+  }
+  tbody tr:last-child td {
+    border-bottom: none;
   }
   td a {
     color: var(--color-accent, #f7e479);
+    text-decoration: none;
+    font-weight: 500;
+  }
+  td a:hover {
     text-decoration: underline;
+  }
+
+  /* PENYORTIRAN */
+  th[data-sort] {
+    cursor: pointer;
+    user-select: none;
+  }
+  th[data-sort]:hover {
+    color: white;
+  }
+  th[data-sort].sorted-asc::after {
+    content: " ▲";
+  }
+  th[data-sort].sorted-desc::after {
+    content: " ▼";
+  }
+
+  /* MODAL DETAIL */
+  .modal-content {
+    text-align: left;
+  }
+  .modal-subtitle {
+    color: #aaa;
+    margin-top: -0.5rem;
+  }
+  .modal-divider {
+    border: none;
+    height: 1px;
+    background-color: #333;
+    margin: 1rem 0;
+  }
+  .modal-details p {
+    text-align: left;
+    margin-bottom: 0.75rem;
+  }
+  .modal-details strong {
+    color: var(--color-accent, #f7e479);
+  }
+  .modal-reason {
+    background: #111;
+    padding: 1rem;
+    border-radius: 8px;
+    color: #ddd;
+    line-height: 1.6;
   }
 </style>
 
 <script is:inline>
-  // Fungsi ini akan berjalan setelah halaman selesai dimuat
   document.addEventListener("DOMContentLoaded", async () => {
     const tableBody = document.getElementById("applicants-table-body");
+    const searchInput = document.getElementById("search-input");
+    const sortableHeaders = document.querySelectorAll("th[data-sort]");
+    const detailModal = document.getElementById("detail-modal");
+    const closeModalButton = detailModal.querySelector(".close-modal-button");
+    const statTotal = document.getElementById("stat-total");
+    const statBaru = document.getElementById("stat-baru");
 
-    try {
-      // 1. Panggil API "kurir" kita
-      const response = await fetch("/api/applicants");
-      if (!response.ok) {
-        throw new Error("Gagal mengambil data dari server.");
-      }
+    let allApplicants = [];
+    let currentSort = { key: "created_at", direction: "desc" };
 
-      const applicants = await response.json();
+    function updateStatCards(applicants) {
+      // Bagian Total Pendaftar tidak berubah
+      statTotal.textContent = applicants.length;
 
-      // Kosongkan isi tabel (menghapus pesan "Memuat data...")
+      // --- Logika Baru untuk Pendaftar Hari Ini ---
+      const today = new Date();
+      // Mengubah tanggal hari ini menjadi format "YYYY-MM-DD" untuk perbandingan
+      const todayString = today.toISOString().slice(0, 10);
+
+      const newApplicantsToday = applicants.filter((applicant) => {
+        // Mengambil tanggal pendaftaran dari setiap aplikan
+        const registrationDateString = new Date(applicant.created_at)
+          .toISOString()
+          .slice(0, 10);
+        // Membandingkan apakah tanggal pendaftaran sama dengan tanggal hari ini
+        return registrationDateString === todayString;
+      }).length;
+
+      // Update kartu Pendaftar Baru dengan hasil perhitungan
+      statBaru.textContent = newApplicantsToday;
+    }
+
+    function renderTable(applicantsToRender) {
       tableBody.innerHTML = "";
-
-      // 2. Jika tidak ada data, tampilkan pesan
-      if (applicants.length === 0) {
+      if (applicantsToRender.length === 0) {
         tableBody.innerHTML =
-          '<tr><td colspan="6">Belum ada pendaftar baru.</td></tr>';
+          '<tr class="no-hover"><td colspan="6">Tidak ada pendaftar yang cocok.</td></tr>';
         return;
       }
-
-      // 3. Loop setiap data pendaftar dan buat baris tabel baru
-      applicants.forEach((applicant) => {
+      applicantsToRender.forEach((applicant) => {
         const row = document.createElement("tr");
-
-        // Format tanggal agar lebih mudah dibaca
+        row.dataset.applicantId = applicant.id;
         const registrationDate = new Date(
           applicant.created_at
         ).toLocaleDateString("id-ID", {
@@ -98,7 +342,6 @@ import Layout from "../../layouts/Layout.astro";
           month: "long",
           year: "numeric",
         });
-
         row.innerHTML = `
           <td>${registrationDate}</td>
           <td>${applicant.nama_asli}</td>
@@ -107,12 +350,91 @@ import Layout from "../../layouts/Layout.astro";
           <td><a href="${applicant.karya_url}" target="_blank">Lihat Karya</a></td>
           <td>${applicant.jawaban_lain || "-"}</td>
         `;
-
         tableBody.appendChild(row);
       });
+    }
+
+    function updateView() {
+      const searchTerm = searchInput.value.toLowerCase();
+      let processedApplicants = allApplicants.filter(
+        (applicant) =>
+          applicant.nama_asli.toLowerCase().includes(searchTerm) ||
+          applicant.nama_ig.toLowerCase().includes(searchTerm)
+      );
+      processedApplicants.sort((a, b) => {
+        const key = currentSort.key;
+        if (a[key] < b[key]) return currentSort.direction === "asc" ? -1 : 1;
+        if (a[key] > b[key]) return currentSort.direction === "asc" ? 1 : -1;
+        return 0;
+      });
+      renderTable(processedApplicants);
+      updateHeaderStyles();
+    }
+
+    function updateHeaderStyles() {
+      sortableHeaders.forEach((header) => {
+        header.classList.remove("sorted-asc", "sorted-desc");
+        if (header.dataset.sort === currentSort.key) {
+          header.classList.add(
+            currentSort.direction === "asc" ? "sorted-asc" : "sorted-desc"
+          );
+        }
+      });
+    }
+
+    searchInput.addEventListener("input", updateView);
+
+    sortableHeaders.forEach((header) => {
+      header.addEventListener("click", () => {
+        const sortKey = header.dataset.sort;
+        if (currentSort.key === sortKey) {
+          currentSort.direction =
+            currentSort.direction === "asc" ? "desc" : "asc";
+        } else {
+          currentSort.key = sortKey;
+          currentSort.direction = "asc";
+        }
+        updateView();
+      });
+    });
+
+    tableBody.addEventListener("click", (e) => {
+      if (target.closest("tr") && !target.closest("a")) {
+        const row = target.closest("tr");
+        const applicantId = row.dataset.applicantId;
+        const applicant = allApplicants.find((a) => a.id == applicantId);
+        if (applicant) {
+          document.getElementById("modal-nama").textContent =
+            applicant.nama_asli;
+          document.getElementById("modal-ig").textContent = applicant.nama_ig;
+          document.getElementById("modal-tanggal").textContent = new Date(
+            applicant.created_at
+          ).toLocaleString("id-ID");
+          document.getElementById("modal-telepon").textContent =
+            applicant.nomor_telepon || "-";
+          document.getElementById("modal-karya").href = applicant.karya_url;
+          document.getElementById("modal-alasan").textContent =
+            applicant.jawaban_lain || "-";
+          detailModal.classList.add("active");
+        }
+      }
+    });
+
+    closeModalButton.addEventListener("click", () =>
+      detailModal.classList.remove("active")
+    );
+    detailModal.addEventListener("click", (e) => {
+      if (e.target === detailModal) detailModal.classList.remove("active");
+    });
+
+    try {
+      const response = await fetch("/api/applicants");
+      if (!response.ok) throw new Error("Gagal mengambil data.");
+      allApplicants = await response.json();
+      updateStatCards(allApplicants);
+      updateView();
     } catch (error) {
-      tableBody.innerHTML = `<tr><td colspan="6">Error: ${error.message}</td></tr>`;
-      console.error(error);
+      tableBody.innerHTML = `<tr class="no-hover"><td colspan="6">Error: ${error.message}</td></tr>`;
     }
   });
 </script>

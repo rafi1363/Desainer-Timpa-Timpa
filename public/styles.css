@@ -13,6 +13,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  align-items: center;
 }
 
 .radio-container {
@@ -133,6 +134,10 @@ header {
   position: sticky;
   top: 0;
   z-index: 1000;
+}
+header,
+footer {
+  width: 100%;
 }
 
 header h1 {
