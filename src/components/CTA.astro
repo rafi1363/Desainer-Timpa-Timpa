@@ -13,10 +13,6 @@
 </section>
 
 <!-- modal div -->
-<div id="lightbox" class="lightbox">
-  <span class="close-button">&times;</span>
-  <img class="lightbox-content" id="lightbox-img" />
-</div>
 
 <div id="join-modal" class="modal">
   <div class="modal-content">
@@ -37,3 +33,36 @@
     </div>
   </div>
 </div>
+
+<script is:inline>
+  // Perintah untuk "menunggu semua perabotan siap"
+  document.addEventListener("DOMContentLoaded", function () {
+    // Logika untuk Modal Gabung Komunitas
+    const ctaSection = document.querySelector(".cta-section");
+    // Kita cari tombol spesifik di dalam section ini
+    const openModalButton = ctaSection
+      ? ctaSection.querySelector(".cta-button")
+      : null;
+
+    // Elemen modal berada di luar section, jadi kita cari di seluruh dokumen
+    const modal = document.getElementById("join-modal");
+    const closeModalButton = modal
+      ? modal.querySelector(".close-modal-button")
+      : null;
+
+    if (modal && openModalButton && closeModalButton) {
+      const openModal = () => modal.classList.add("active");
+      const closeModal = () => modal.classList.remove("active");
+
+      openModalButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        openModal();
+      });
+
+      closeModalButton.addEventListener("click", closeModal);
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) closeModal();
+      });
+    }
+  });
+</script>

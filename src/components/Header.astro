@@ -16,3 +16,36 @@
     <a href="#kontak">Kontak</a>
   </div>
 </header>
+
+<script is:inline>
+  // --- LOGIKA UNTUK MENU HAMBURGER ---
+  const hamburger = document.querySelector(".hamburger");
+  const navMenu = document.querySelector(".nav");
+
+  if (hamburger && navMenu) {
+    hamburger.addEventListener("click", () => {
+      hamburger.classList.toggle("active");
+      navMenu.classList.toggle("active");
+    });
+  }
+
+  // --- LOGIKA UNTUK SMOOTH SCROLL ---
+  const navLinks = document.querySelectorAll('.nav a[href^="#"]');
+  navLinks.forEach((link) => {
+    link.addEventListener("click", function (event) {
+      event.preventDefault();
+      const targetId = this.getAttribute("href");
+      const targetElement = document.querySelector(targetId);
+
+      if (targetElement) {
+        // Menutup menu hamburger di mobile saat link diklik
+        if (hamburger && navMenu) {
+          hamburger.classList.remove("active");
+          navMenu.classList.remove("active");
+        }
+
+        targetElement.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
+  });
+</script>

@@ -34,3 +34,26 @@ import Footer from "../components/Footer.astro";
 
   <Footer />
 </Layout>
+
+<script is:inline>
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.remove("hidden-on-scroll");
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.1 }
+  );
+
+  const hiddenElements = document.querySelectorAll(
+    ".feature-card, .gallery-item, .event-card, .testimonial-card, .footer-column"
+  );
+
+  hiddenElements.forEach((el) => {
+    el.classList.add("hidden-on-scroll");
+    observer.observe(el);
+  });
+</script>

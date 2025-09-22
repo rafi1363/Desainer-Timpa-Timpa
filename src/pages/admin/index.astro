@@ -384,6 +384,27 @@ import Layout from "../../layouts/Layout.astro";
 
 <script is:inline>
   document.addEventListener("DOMContentLoaded", async () => {
+    async function fetchAdminInfo() {
+      try {
+        const response = await fetch("/api/me");
+        if (!response.ok) return; // Gagal, biarkan nama default
+
+        const adminData = await response.json();
+        const welcomeMessage = document.querySelector(
+          ".welcome-message strong"
+        );
+
+        if (welcomeMessage && adminData.real_name) {
+          welcomeMessage.textContent = adminData.real_name;
+        }
+      } catch (error) {
+        console.error("Gagal mengambil info admin:", error);
+      }
+    }
+
+    // Panggil fungsi untuk mengambil info admin saat halaman dimuat
+    fetchAdminInfo();
+
     const logoutBtn = document.getElementById("logout-btn");
     const logoutModal = document.getElementById("logout-modal");
     const cancelLogoutBtn = document.getElementById("cancel-logout-btn");
@@ -396,32 +417,39 @@ import Layout from "../../layouts/Layout.astro";
     const statTotal = document.getElementById("stat-total");
     const statBaru = document.getElementById("stat-baru");
 
-    if (logoutBtn && window.netlifyIdentity) {
-      // 1. Saat tombol logout utama di header diklik, BUKA modal
+    if (logoutBtn) {
+      // Saat tombol logout utama diklik, BUKA modal
       logoutBtn.addEventListener("click", () => {
         logoutModal.classList.add("active");
       });
 
-      // 2. Saat tombol "Batal" di modal diklik, TUTUP modal
+      // Saat tombol "Batal" diklik, TUTUP modal
       cancelLogoutBtn.addEventListener("click", () => {
         logoutModal.classList.remove("active");
       });
 
-      // Juga tutup modal jika area gelap di sekitarnya diklik
       logoutModal.addEventListener("click", (e) => {
         if (e.target === logoutModal) {
           logoutModal.classList.remove("active");
         }
       });
 
-      // 3. Saat tombol "Ya, Logout" di modal diklik, jalankan proses logout
-      confirmLogoutBtn.addEventListener("click", () => {
-        window.netlifyIdentity.logout();
-      });
+      // Saat tombol "Ya, Logout" diklik, panggil API logout
+      confirmLogoutBtn.addEventListener("click", async () => {
+        // Tampilkan status loading jika perlu
+        confirmLogoutBtn.textContent = "Logging out...";
+        confirmLogoutBtn.disabled = true;
 
-      // 4. Setelah proses logout selesai, arahkan ke halaman utama (logika ini tetap sama)
-      window.netlifyIdentity.on("logout", () => {
-        window.location.href = "/";
+        // Panggil API untuk logout
+        const response = await fetch("/api/logout", { method: "POST" });
+
+        // API akan menangani redirect, tapi kita bisa paksa redirect di sini jika gagal
+        if (response.redirected) {
+          window.location.href = response.url;
+        } else {
+          // Jika terjadi error, arahkan manual ke halaman utama
+          window.location.href = "/";
+        }
       });
     }
 

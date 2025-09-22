@@ -28,3 +28,60 @@
     </div>
   </div>
 </section>
+
+<script is:inline>
+  // --- LOGIKA UNTUK LIVE EVENT HIGHLIGHT ---
+  document.addEventListener("DOMContentLoaded", function () {
+    const eventCards = document.querySelectorAll(".event-card");
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const monthMap = {
+      januari: 0,
+      februari: 1,
+      maret: 2,
+      april: 3,
+      mei: 4,
+      juni: 5,
+      juli: 6,
+      agustus: 7,
+      september: 8,
+      oktober: 9,
+      november: 10,
+      desember: 11,
+    };
+
+    eventCards.forEach((card) => {
+      const dateElement = card.querySelector(".event-date");
+      if (!dateElement) return;
+
+      const dateText = dateElement.textContent.toLowerCase();
+
+      const dateTimeRegex =
+        /(\d{1,2})\s(januari|februari|maret|april|mei|juni|juli|agustus|september|oktober|november|desember)\s(\d{4}).*?(\d{2}):(\d{2})/;
+      const dateOnlyRegex =
+        /(\d{1,2})\s(januari|februari|maret|april|mei|juni|juli|agustus|september|oktober|november|desember)\s(\d{4})/;
+
+      const dateTimeParts = dateText.match(dateTimeRegex);
+      const dateOnlyParts = dateText.match(dateOnlyRegex);
+
+      if (dateTimeParts) {
+        // Logika untuk event dengan jam spesifik (LIVE/Segera)
+      } else if (dateOnlyParts) {
+        const day = parseInt(dateOnlyParts[1], 10);
+        const month = monthMap[dateOnlyParts[2]];
+        const year = parseInt(dateOnlyParts[3], 10);
+        const deadlineDate = new Date(year, month, day, 23, 59, 59);
+
+        if (today <= deadlineDate) {
+          card.classList.add("ongoing-event");
+          const badge = document.createElement("div");
+          badge.className = "ongoing-badge";
+          badge.textContent = "On-Going";
+          card.style.position = "relative";
+          card.appendChild(badge);
+        }
+      }
+    });
+  });
+</script>

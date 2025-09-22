@@ -55,3 +55,39 @@ for (const path in semuaGambar) {
     }
   </div>
 </section>
+
+<div id="lightbox" class="lightbox">
+  <span class="close-button">&times;</span>
+  <img class="lightbox-content" id="lightbox-img" />
+</div>
+
+<script is:inline>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Logika untuk Lightbox
+    const galleryItems = document.querySelectorAll(".gallery-item");
+    const lightbox = document.getElementById("lightbox");
+    const lightboxImg = document.getElementById("lightbox-img");
+    const closeBtn = lightbox ? lightbox.querySelector(".close-button") : null;
+
+    // Pastikan semua elemen yang dibutuhkan ada di halaman
+    if (lightbox && galleryItems.length > 0 && closeBtn) {
+      galleryItems.forEach((item) => {
+        item.addEventListener("click", () => {
+          const imgSrc = item.querySelector("img").src;
+          lightboxImg.src = imgSrc;
+          lightbox.classList.add("active");
+        });
+      });
+
+      const closeLightbox = () => lightbox.classList.remove("active");
+
+      closeBtn.addEventListener("click", closeLightbox);
+
+      lightbox.addEventListener("click", (e) => {
+        if (e.target === lightbox) {
+          closeLightbox();
+        }
+      });
+    }
+  });
+</script>

@@ -1,40 +1,26 @@
+---
+// File Layout.astro yang bersih
+---
+
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Desainer Timpa Timpa</title>
-
+    <link
+      rel="icon"
+      type="image/png"
+      href="../../public/assets/DTT-logo-white.png"
+    />
     <meta
       name="description"
       content="DTT (Desainer Timpa Timpa) adalah komunitas bagi desainer grafis di Indonesia untuk berkolaborasi, berbagi karya, dan belajar bersama. Gabung sekarang!"
     />
 
-    <link rel="stylesheet" href="/styles.css" />
-
-    <script
-      is:inline
-      src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-    <script is:inline>
-      if (window.netlifyIdentity) {
-        window.netlifyIdentity.on("init", (user) => {
-          if (!user) {
-            window.netlifyIdentity.on("login", () => {
-              document.location.href = "/admin/";
-            });
-          }
-        });
-      }
-    </script>
+    <link rel="stylesheet" href="../../public/styles.css" />
   </head>
   <body>
     <slot />
-
-    <script
-      is:inline
-      src="https://kit.fontawesome.com/9fe38aad02.js"
-      crossorigin="anonymous"></script>
-
-    <script is:inline src="../../public/script.js"></script>
   </body>
 </html>
