@@ -20,6 +20,18 @@ export const POST: APIRoute = async ({ request }) => {
   // Untuk sekarang, kita akan fokus menyimpan data teks terlebih dahulu.
   const karya_url = formData.get('karya_url');
 
+    console.log("\n--- Memulai Proses Pendaftaran Baru ---");
+  const connectionString = import.meta.env.DATABASE_URL;
+
+  // Cek apakah variabelnya ada atau tidak
+  if (!connectionString) {
+    console.error("FATAL ERROR: Environment variable DATABASE_URL tidak ditemukan!");
+    return new Response(JSON.stringify({ message: "Konfigurasi server error." }), { status: 500 });
+  }
+
+  // Cetak isi connection string ke terminal untuk kita lihat
+  console.log("Connection String yang digunakan:", connectionString);
+    
   // 2. Siapkan koneksi ke database Neon menggunakan "kunci rahasia"
   const client = new Client({
     connectionString: import.meta.env.DATABASE_URL, // Membaca variabel dari Netlify
@@ -47,12 +59,11 @@ export const POST: APIRoute = async ({ request }) => {
     }), { status: 200 });
 
   } catch (error) {
-    // Jika terjadi error (misal: koneksi gagal), kirim respon error
-    console.error(error);
+    console.error("--- ERROR SAAT KONEKSI ATAU QUERY ---");
+    console.error(error); // Cetak detail error dari database
     return new Response(JSON.stringify({ message: "Terjadi kesalahan pada server." }), { status: 500 });
-
   } finally {
-    // 7. Selalu tutup koneksi ke database setelah selesai
-    await client.end();
+      await client.end();
+    console.log("--- Proses Selesai ---");
   }
 };
