@@ -11,11 +11,11 @@ import Layout from "../../layouts/Layout.astro";
         <thead>
           <tr>
             <th>Tanggal Daftar</th>
-            <th>Nama Lengkap</th>
+            <th>Nama Panggilan/Nama Asli</th>
             <th>Instagram</th>
             <th>Nomor Telepon</th>
-            <th>Mengapa kamu ingin bergabung dengan DTT?</th>
             <th>Karya</th>
+            <th>Alasan Bergabung</th>
           </tr>
         </thead>
         <tbody id="applicants-table-body">
@@ -82,7 +82,7 @@ import Layout from "../../layouts/Layout.astro";
       // 2. Jika tidak ada data, tampilkan pesan
       if (applicants.length === 0) {
         tableBody.innerHTML =
-          '<tr><td colspan="5">Belum ada pendaftar baru.</td></tr>';
+          '<tr><td colspan="6">Belum ada pendaftar baru.</td></tr>';
         return;
       }
 
@@ -105,12 +105,13 @@ import Layout from "../../layouts/Layout.astro";
           <td><a href="https://instagram.com/${applicant.nama_ig.replace("@", "")}" target="_blank">${applicant.nama_ig}</a></td>
           <td>${applicant.nomor_telepon || "-"}</td>
           <td><a href="${applicant.karya_url}" target="_blank">Lihat Karya</a></td>
+          <td>${applicant.jawaban_lain || "-"}</td>
         `;
 
         tableBody.appendChild(row);
       });
     } catch (error) {
-      tableBody.innerHTML = `<tr><td colspan="5">Error: ${error.message}</td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="6">Error: ${error.message}</td></tr>`;
       console.error(error);
     }
   });

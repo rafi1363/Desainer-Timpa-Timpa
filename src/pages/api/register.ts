@@ -55,7 +55,7 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response(JSON.stringify({
       message: "Pendaftaran berhasil! Silakan bergabung ke grup WhatsApp.",
       // Ganti dengan link grup WhatsApp Anda yang sebenarnya
-      whatsapp_link: "https://chat.whatsapp.com/GANTIDENGANLINKGRUPANDA" 
+      whatsapp_link: "https://chat.whatsapp.com/BuMBWLJpdKi32ut03R0dux" 
     }), { status: 200 });
 
   } catch (error) {

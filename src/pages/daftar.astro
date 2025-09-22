@@ -59,83 +59,117 @@ import Layout from "../layouts/Layout.astro";
       </form>
       <div id="success-message" style="display:none;"></div>
     </div>
+
+    <div id="success-modal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal-button">&times;</span>
+        <h2>Pendaftaran Berhasil!</h2>
+        <p>
+          Terima kasih telah mendaftar. Langkah terakhir, silakan bergabung ke
+          grup WhatsApp di bawah ini untuk menunggu persetujuan admin.
+        </p>
+        <a
+          href="#"
+          id="whatsapp-link"
+          target="_blank"
+          class="cta-button"
+          style="margin-top: 1.5rem;">Gabung Grup WhatsApp</a
+        >
+      </div>
+    </div>
   </main>
-  <script is:inline>
-    // Ganti dengan data dari akun Cloudinary Anda
-    const CLOUDINARY_CLOUD_NAME = "dsnvmjdni";
-    const CLOUDINARY_UPLOAD_PRESET = "hziqmdzw";
-
-    const form = document.getElementById("registration-form");
-    const successDiv = document.getElementById("success-message");
-    const fileInput = document.getElementById("karya");
-    const hiddenUrlInput = document.getElementById("karya_url");
-
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const submitButton = form.querySelector('button[type="submit"]');
-      submitButton.disabled = true;
-      submitButton.textContent = "Mengunggah Karya...";
-
-      // --- LANGKAH 1: UPLOAD FILE KE CLOUDINARY ---
-      const file = fileInput.files[0];
-      if (!file) {
-        alert("Anda harus memilih file karya untuk diunggah.");
-        submitButton.disabled = false;
-        submitButton.textContent = "Kirim Pendaftaran";
-        return;
-      }
-
-      const cloudinaryFormData = new FormData();
-      cloudinaryFormData.append("file", file);
-      cloudinaryFormData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-
-      try {
-        const cloudinaryRes = await fetch(
-          `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-          {
-            method: "POST",
-            body: cloudinaryFormData,
-          }
-        );
-
-        if (!cloudinaryRes.ok) throw new Error("Gagal mengunggah gambar.");
-
-        const cloudinaryData = await cloudinaryRes.json();
-        const imageUrl = cloudinaryData.secure_url;
-
-        // Masukkan URL gambar ke input tersembunyi
-        hiddenUrlInput.value = imageUrl;
-
-        // --- LANGKAH 2: KIRIM DATA FORMULIR KE API KITA ---
-        submitButton.textContent = "Menyimpan Pendaftaran...";
-        const appFormData = new FormData(form);
-
-        const appRes = await fetch("/api/register", {
-          method: "POST",
-          body: appFormData,
-        });
-
-        const result = await appRes.json();
-
-        if (appRes.ok) {
-          form.style.display = "none";
-          successDiv.style.display = "block";
-          successDiv.innerHTML = `
-          <h3>${result.message}</h3>
-          <p>Klik tombol di bawah untuk masuk ke grup tunggu.</p>
-          <a href="${result.whatsapp_link}" target="_blank" class="cta-button" style="margin-top: 1.5rem;">Gabung Grup WhatsApp</a>
-        `;
-        } else {
-          throw new Error(result.message);
-        }
-      } catch (error) {
-        alert("Terjadi kesalahan: " + error.message);
-        submitButton.disabled = false;
-        submitButton.textContent = "Kirim Pendaftaran";
-      }
-    });
-  </script>
 </Layout>
+
+<script is:inline>
+  // Ganti dengan data dari akun Cloudinary Anda
+  const CLOUDINARY_CLOUD_NAME = "dsnvmjdni";
+  const CLOUDINARY_UPLOAD_PRESET = "hziqmdzw";
+
+  // --- ELEMEN YANG KITA KONTROL ---
+  const form = document.getElementById("registration-form");
+  const fileInput = document.getElementById("karya");
+  const hiddenUrlInput = document.getElementById("karya_url");
+
+  // Ambil referensi ke modal sukses yang baru
+  const successModal = document.getElementById("success-modal");
+  const whatsappLink = document.getElementById("whatsapp-link");
+  const closeModalButton = successModal.querySelector(".close-modal-button");
+
+  // --- FUNGSI UNTUK MENUTUP MODAL ---
+  const closeModal = () => {
+    successModal.classList.remove("active");
+  };
+
+  closeModalButton.addEventListener("click", closeModal);
+  successModal.addEventListener("click", (event) => {
+    if (event.target === successModal) {
+      closeModal();
+    }
+  });
+
+  // --- EVENT LISTENER UNTUK SUBMIT FORMULIR ---
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const submitButton = form.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    submitButton.textContent = "Mengunggah Karya...";
+
+    const file = fileInput.files[0];
+    if (!file) {
+      alert("Anda harus memilih file karya untuk diunggah.");
+      submitButton.disabled = false;
+      submitButton.textContent = "Kirim Pendaftaran";
+      return;
+    }
+
+    const cloudinaryFormData = new FormData();
+    cloudinaryFormData.append("file", file);
+    cloudinaryFormData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+    try {
+      // Langkah 1: Upload ke Cloudinary
+      const cloudinaryRes = await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+        { method: "POST", body: cloudinaryFormData }
+      );
+      if (!cloudinaryRes.ok) throw new Error("Gagal mengunggah gambar.");
+      const cloudinaryData = await cloudinaryRes.json();
+      hiddenUrlInput.value = cloudinaryData.secure_url;
+
+      submitButton.textContent = "Menyimpan Pendaftaran...";
+
+      // Langkah 2: Kirim data ke API kita
+      const appFormData = new FormData(form);
+      const appRes = await fetch("/api/register", {
+        method: "POST",
+        body: appFormData,
+      });
+      const result = await appRes.json();
+
+      if (appRes.ok) {
+        // --- PERUBAHAN UTAMA ADA DI SINI ---
+        // Alih-alih menyembunyikan form, kita tampilkan modal
+
+        // 1. Atur link WhatsApp di dalam modal
+        whatsappLink.href = result.whatsapp_link;
+
+        // 2. Tampilkan modal sukses
+        successModal.classList.add("active");
+
+        // 3. Reset form dan tombol untuk pendaftaran berikutnya
+        form.reset();
+        submitButton.disabled = false;
+        submitButton.textContent = "Kirim Pendaftaran";
+      } else {
+        throw new Error(result.message);
+      }
+    } catch (error) {
+      alert("Terjadi kesalahan: " + error.message);
+      submitButton.disabled = false;
+      submitButton.textContent = "Kirim Pendaftaran";
+    }
+  });
+</script>
 
 <style>
   /* Styling khusus untuk halaman ini */
@@ -175,6 +209,7 @@ import Layout from "../layouts/Layout.astro";
     color: #f0f0f0;
     font-size: 1rem;
     transition: all 0.2s ease;
+    resize: none; /* <-- TAMBAHKAN BARIS INI */
   }
   .form-group input:focus,
   .form-group textarea:focus {
