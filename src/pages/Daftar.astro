@@ -1,0 +1,192 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout>
+  <div id="success-message" style="display:none;"></div>
+  <main class="registration-page">
+    <div class="registration-container">
+      <h2 class="section-title">Pendaftaran Anggota Baru DTT</h2>
+      <p class="registration-subtitle">
+        Isi formulir di bawah ini untuk menjadi bagian dari komunitas. Tim kami
+        akan meninjau aplikasimu.
+      </p>
+
+      <form id="registration-form" class="registration-form">
+        <div class="form-group">
+          <label for="nama_asli">Nama Panggilan/Nama Asli</label>
+          <input type="text" id="nama_asli" name="nama_asli" required />
+        </div>
+
+        <div class="form-group">
+          <label for="nama_ig">Username Instagram</label>
+          <input
+            type="text"
+            id="nama_ig"
+            name="nama_ig"
+            placeholder="@username"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="nomor_telepon">Nomor Telepon (WhatsApp)</label>
+          <input type="tel" id="nomor_telepon" name="nomor_telepon" />
+        </div>
+
+        <div class="form-group">
+          <label for="karya">Unggah Satu Karya Terbaikmu</label>
+          <input
+            type="hidden"
+            id="karya"
+            name="karya"
+            accept="image/*"
+            required
+          />
+          <small>Format: JPG, PNG, WEBP. Maks: 5MB.</small>
+        </div>
+
+        <div class="form-group">
+          <label for="jawaban_lain"
+            >Mengapa kamu ingin bergabung dengan DTT?</label
+          >
+          <textarea id="jawaban_lain" name="jawaban_lain" rows="4" required
+          ></textarea>
+        </div>
+
+        <button type="submit" class="cta-button">Kirim Pendaftaran</button>
+      </form>
+      <div id="success-message" style="display:none;"></div>
+    </div>
+  </main>
+  <script is:inline>
+    // Ganti dengan data dari akun Cloudinary Anda
+    const CLOUDINARY_CLOUD_NAME = "dsnvmjdni";
+    const CLOUDINARY_UPLOAD_PRESET = "hziqmdzw";
+
+    const form = document.getElementById("registration-form");
+    const successDiv = document.getElementById("success-message");
+    const fileInput = document.getElementById("karya");
+    const hiddenUrlInput = document.getElementById("karya_url");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const submitButton = form.querySelector('button[type="submit"]');
+      submitButton.disabled = true;
+      submitButton.textContent = "Mengunggah Karya...";
+
+      // --- LANGKAH 1: UPLOAD FILE KE CLOUDINARY ---
+      const file = fileInput.files[0];
+      if (!file) {
+        alert("Anda harus memilih file karya untuk diunggah.");
+        submitButton.disabled = false;
+        submitButton.textContent = "Kirim Pendaftaran";
+        return;
+      }
+
+      const cloudinaryFormData = new FormData();
+      cloudinaryFormData.append("file", file);
+      cloudinaryFormData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+      try {
+        const cloudinaryRes = await fetch(
+          `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+          {
+            method: "POST",
+            body: cloudinaryFormData,
+          }
+        );
+
+        if (!cloudinaryRes.ok) throw new Error("Gagal mengunggah gambar.");
+
+        const cloudinaryData = await cloudinaryRes.json();
+        const imageUrl = cloudinaryData.secure_url;
+
+        // Masukkan URL gambar ke input tersembunyi
+        hiddenUrlInput.value = imageUrl;
+
+        // --- LANGKAH 2: KIRIM DATA FORMULIR KE API KITA ---
+        submitButton.textContent = "Menyimpan Pendaftaran...";
+        const appFormData = new FormData(form);
+
+        const appRes = await fetch("/api/register", {
+          method: "POST",
+          body: appFormData,
+        });
+
+        const result = await appRes.json();
+
+        if (appRes.ok) {
+          form.style.display = "none";
+          successDiv.style.display = "block";
+          successDiv.innerHTML = `
+          <h3>${result.message}</h3>
+          <p>Klik tombol di bawah untuk masuk ke grup tunggu.</p>
+          <a href="${result.whatsapp_link}" target="_blank" class="cta-button" style="margin-top: 1.5rem;">Gabung Grup WhatsApp</a>
+        `;
+        } else {
+          throw new Error(result.message);
+        }
+      } catch (error) {
+        alert("Terjadi kesalahan: " + error.message);
+        submitButton.disabled = false;
+        submitButton.textContent = "Kirim Pendaftaran";
+      }
+    });
+  </script>
+</Layout>
+
+<style>
+  /* Styling khusus untuk halaman ini */
+  .registration-page {
+    padding: 5rem 2rem;
+  }
+  .registration-container {
+    max-width: 700px;
+    margin: 0 auto;
+    background: #151515;
+    padding: 3rem;
+    border-radius: 16px;
+    border: 1px solid rgba(247, 228, 121, 0.1);
+  }
+  .registration-subtitle {
+    text-align: center;
+    color: #aaa;
+    margin-top: -2rem;
+    margin-bottom: 3rem;
+  }
+  .form-group {
+    margin-bottom: 2rem;
+  }
+  .form-group label {
+    display: block;
+    margin-bottom: 0.75rem;
+    font-weight: 500;
+    color: #ccc;
+  }
+  .form-group input,
+  .form-group textarea {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    background: #1c1c1c;
+    border: 1px solid #444;
+    border-radius: 8px;
+    color: #f0f0f0;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+  }
+  .form-group input:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: var(--color-accent, #f7e479);
+    box-shadow: 0 0 10px rgba(247, 228, 121, 0.2);
+  }
+  .form-group small {
+    display: block;
+    margin-top: 0.5rem;
+    color: #888;
+  }
+  .registration-form button {
+    width: 100%;
+  }
+</style>

@@ -9,6 +9,8 @@
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^5.13.9"
+    "@types/pg": "^8.15.5",
+    "astro": "^5.13.9",
+    "pg": "^8.16.3"
   }
 }
