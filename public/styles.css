@@ -125,7 +125,7 @@ header {
   justify-content: space-between; /* Mendorong item ke sisi kiri dan kanan */
   align-items: center; /* Menyelaraskan item secara vertikal di tengah */
 
-  padding: 0.05rem 2.25rem; /* Padding dibuat lebih ramping untuk navbar */
+  padding: 0.5rem 2.5rem; /* Padding dibuat lebih ramping untuk navbar */
   background: linear-gradient(135deg, #1b1b1b 0%, #0f0f0f 100%);
   border-bottom: 1px solid rgba(247, 228, 121, 0.1);
 
