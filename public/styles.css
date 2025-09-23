@@ -894,21 +894,23 @@ footer {
 }
 
 /* 2. Media Query untuk layar kecil (mobile) */
-@media (max-width: 800px) {
+@media (max-width: 768px) {
   .responsive-table table,
   .responsive-table thead,
   .responsive-table tbody,
   .responsive-table th,
   .responsive-table td,
   .responsive-table tr {
-    display: block; /* Ubah semua elemen tabel menjadi blok */
+    display: block; /* Ubah semua elemen tabel menjadi blok seperti div */
   }
-  /* Sembunyikan header tabel di mobile, karena kita akan buat label baru */
+
+  /* Sembunyikan header tabel asli di mobile */
   .responsive-table thead tr {
     position: absolute;
     top: -9999px;
     left: -9999px;
   }
+
   .responsive-table tr {
     border: 1px solid #333;
     border-radius: 8px;
@@ -921,7 +923,7 @@ footer {
     border-bottom: 1px solid #2a2a2a;
     position: relative;
     padding-left: 50%; /* Beri ruang untuk label di kiri */
-    text-align: right; /* Rata kanan untuk nilai */
+    text-align: right;
     white-space: normal;
   }
 
@@ -929,14 +931,14 @@ footer {
     border-bottom: none;
   }
 
-  /* Ini adalah "sihir"-nya: membuat label kolom baru menggunakan data dari HTML */
+  /* Membuat label kolom baru menggunakan data dari HTML */
   .responsive-table td:before {
     position: absolute;
     left: 1rem;
     width: 45%;
     padding-right: 10px;
     white-space: nowrap;
-    text-align: left; /* Rata kiri untuk label */
+    text-align: left;
     font-weight: 600;
     color: var(--color-accent, #f7e479);
     content: attr(data-label); /* Ambil teks dari atribut 'data-label' */
@@ -1074,7 +1076,7 @@ footer {
   margin: 0 auto; /* <-- TAMBAHKAN INI */
 }
 .section-title {
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
 }
 
 .stats-grid {
@@ -1352,8 +1354,8 @@ th[data-sort].sorted-desc::after {
 .registration-subtitle {
   text-align: center;
   color: #aaa;
-  margin-top: -2rem;
-  margin-bottom: 3rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
 }
 .form-group {
   margin-bottom: 2rem;

@@ -33,7 +33,7 @@ import Layout from "../../layouts/Layout.astro";
       />
     </div>
 
-    <div class="table-container">
+    <div class="table-container responsive-table">
       <table>
         <thead>
           <tr>
@@ -203,12 +203,12 @@ import Layout from "../../layouts/Layout.astro";
           year: "numeric",
         });
         row.innerHTML = `
-          <td>${registrationDate}</td>
-          <td>${applicant.nama_asli}</td>
-          <td><a href="https://instagram.com/${applicant.nama_ig.replace("@", "")}" target="_blank">${applicant.nama_ig}</a></td>
-          <td>${applicant.nomor_telepon || "-"}</td>
-          <td><a href="${applicant.karya_url}" target="_blank">Lihat Karya</a></td>
-          <td>${applicant.jawaban_lain || "-"}</td>
+          <td data-label="Tgl Daftar">${registrationDate}</td>
+          <td data-label="Nama">${applicant.nama_asli}</td>
+          <td data-label="Instagram"><a href="https://instagram.com/${applicant.nama_ig.replace("@", "")}" target="_blank">${applicant.nama_ig}</a></td>
+          <td data-label="Nomor Telepon">${applicant.nomor_telepon || "-"}</td>
+          <td data-label="Karya"><a href="${applicant.karya_url}" target="_blank">Lihat Karya</a></td>
+          <td data-label="Alasan Bergabug">${applicant.jawaban_lain || "-"}</td>
         `;
         tableBody.appendChild(row);
       });
