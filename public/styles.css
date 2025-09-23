@@ -425,6 +425,12 @@ html {
   margin-bottom: 1rem;
   color: white;
 }
+.event-host {
+  color: #aaa;
+  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+  font-style: italic;
+}
 
 .event-desc {
   color: #aaa;
@@ -889,6 +895,52 @@ footer {
 
 /* 2. Media Query untuk layar kecil (mobile) */
 @media (max-width: 800px) {
+  .responsive-table table,
+  .responsive-table thead,
+  .responsive-table tbody,
+  .responsive-table th,
+  .responsive-table td,
+  .responsive-table tr {
+    display: block; /* Ubah semua elemen tabel menjadi blok */
+  }
+  /* Sembunyikan header tabel di mobile, karena kita akan buat label baru */
+  .responsive-table thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+  .responsive-table tr {
+    border: 1px solid #333;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    background-color: #151515;
+  }
+
+  .responsive-table td {
+    border: none;
+    border-bottom: 1px solid #2a2a2a;
+    position: relative;
+    padding-left: 50%; /* Beri ruang untuk label di kiri */
+    text-align: right; /* Rata kanan untuk nilai */
+    white-space: normal;
+  }
+
+  .responsive-table td:last-child {
+    border-bottom: none;
+  }
+
+  /* Ini adalah "sihir"-nya: membuat label kolom baru menggunakan data dari HTML */
+  .responsive-table td:before {
+    position: absolute;
+    left: 1rem;
+    width: 45%;
+    padding-right: 10px;
+    white-space: nowrap;
+    text-align: left; /* Rata kiri untuk label */
+    font-weight: 600;
+    color: var(--color-accent, #f7e479);
+    content: attr(data-label); /* Ambil teks dari atribut 'data-label' */
+  }
   /* Tampilkan tombol hamburger */
   .hamburger {
     display: block;
@@ -1400,4 +1452,181 @@ th[data-sort].sorted-desc::after {
 .back-link:hover {
   color: var(--color-accent, #f7e479);
   text-decoration: underline;
+}
+
+.swiper-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.swiper {
+  padding: 1rem 4rem 4rem 4rem; /* Beri ruang untuk tombol dan paginasi */
+}
+
+.swiper-slide {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: auto;
+}
+
+/* Kustomisasi Tampilan Tombol & Paginasi Swiper */
+:root {
+  --swiper-theme-color: #f7e479; /* Warna aksen Anda */
+  --swiper-navigation-size: 30px;
+}
+
+.swiper-button-prev,
+.swiper-button-next {
+  color: var(--swiper-theme-color);
+  transition: transform 0.2s ease;
+}
+.swiper-button-prev:hover,
+.swiper-button-next:hover {
+  transform: scale(1.2);
+}
+
+.swiper-pagination-bullet-active {
+  background: var(--swiper-theme-color);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem; /* Jarak antara tombol Kelola Event dan Logout */
+}
+
+.header-actions .cta-button {
+  padding: 0.6rem 1.2rem;
+  font-size: 0.9rem;
+  text-decoration: none;
+  border-radius: 7px;
+}
+
+.header-actions .secondary-button {
+  background: transparent;
+  border: 2px solid #555;
+  color: #ccc;
+  text-decoration: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.header-actions .secondary-button:hover {
+  background-color: #333;
+  border-color: #777;
+  color: white;
+}
+
+/* Menggunakan kembali gaya dari halaman admin sebelumnya */
+.admin-page {
+  padding: 4rem 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #333;
+}
+.section-title {
+  margin-bottom: 0;
+}
+.cta-button {
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding: 0.75rem 1.5rem;
+}
+
+/* EVENT TABLE PAGE */
+.event-tag {
+  display: inline-block;
+  background: rgba(247, 228, 121, 0.2);
+  color: #f7e479;
+  padding: 0.3rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+}
+.actions-cell {
+  text-align: left;
+}
+.action-btn {
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin: 0 4px;
+  transition: all 0.2s ease;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  background-color: #333;
+}
+.action-btn:hover {
+  background-color: #555;
+}
+.action-btn.reject {
+  background-color: #991b1b;
+}
+.action-btn.reject:hover {
+  background-color: #dc2626;
+}
+
+/* ADD FORM AND EDIT EVENT PAGE */
+.admin-page {
+  padding: 4rem 2rem;
+}
+.form-container {
+  max-width: 800px;
+  margin: 0 auto;
+  background: #151515;
+  padding: 3rem;
+  border-radius: 16px;
+  border: 1px solid #333;
+}
+.form-group {
+  margin-bottom: 1.5rem;
+}
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #ccc;
+}
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 0.8rem;
+  background: #1c1c1c;
+  border: 1px solid #444;
+  border-radius: 8px;
+  color: white;
+  font-size: 1rem;
+  resize: vertical;
+}
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+.cta-button,
+.secondary-button {
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+}
+.secondary-button {
+  background: #333;
+  color: white;
 }

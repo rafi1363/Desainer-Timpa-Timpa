@@ -1,0 +1,174 @@
+---
+import Layout from "../../layouts/Layout.astro";
+
+// Mengambil data event dari API saat halaman dimuat
+let events = [];
+try {
+  const response = await fetch(Astro.url.origin + "/api/events");
+  if (response.ok) {
+    events = await response.json();
+  }
+} catch (e) {
+  console.error(e);
+}
+---
+
+<Layout>
+  <main class="admin-page">
+    <div class="admin-header">
+      <h2 class="section-title">Kelola Event</h2>
+      <div class="header-actions">
+        <a href="/admin" class="secondary-button">← Kembali</a>
+        <a href="/admin/events/new" class="cta-button">Tambah Event Baru</a>
+      </div>
+    </div>
+
+    <div class="table-container responsive-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Judul Event</th>
+            <th>Tanggal Acara</th>
+            <th>Tipe</th>
+            <th>Host</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            events.length === 0 ? (
+              <tr class="no-hover">
+                <td colspan="5">Belum ada event yang dibuat.</td>
+              </tr>
+            ) : (
+              events.map((event) => {
+                const eventDate = new Date(event.event_date).toLocaleDateString(
+                  "id-ID",
+                  {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  }
+                );
+                return (
+                  <tr>
+                    <td data-label="Judul">{event.title}</td>
+                    <td data-label="Tanggal">{eventDate}</td>
+                    <td data-label="Tipe">
+                      <span class="event-tag">{event.event_type}</span>
+                    </td>
+                    <td data-label="Host">{event.host}</td>
+                    <td data-label="Aksi" class="actions-cell">
+                      <a href={`/admin/events/${event.id}`} class="action-btn">
+                        Edit
+                      </a>
+                      <button class="action-btn reject" data-id={event.id}>
+                        Hapus
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
+            )
+          }
+        </tbody>
+      </table>
+    </div>
+  </main>
+  <div id="delete-modal" class="modal">
+    <div class="modal-content">
+      <h3>Konfirmasi Hapus</h3>
+      <p
+        id="delete-confirmation-text"
+        style="margin: 1rem 0 2rem; color: #ccc;"
+      >
+        Anda yakin ingin menghapus event ini?
+      </p>
+      <div class="modal-actions">
+        <button id="cancel-delete-btn" class="modal-button cancel">Batal</button
+        >
+        <button id="confirm-delete-btn" class="modal-button confirm-danger"
+          >Ya, Hapus</button
+        >
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script is:inline>
+  document.addEventListener("DOMContentLoaded", () => {
+    const tableBody = document.querySelector("tbody");
+
+    // Ambil elemen-elemen modal hapus yang baru
+    const deleteModal = document.getElementById("delete-modal");
+    const cancelDeleteBtn = document.getElementById("cancel-delete-btn");
+    const confirmDeleteBtn = document.getElementById("confirm-delete-btn");
+    const deleteConfirmationText = document.getElementById(
+      "delete-confirmation-text"
+    );
+
+    let eventIdToDelete = null; // Variabel untuk menyimpan ID event yang akan dihapus
+
+    // Fungsi untuk menutup modal
+    const closeDeleteModal = () => {
+      deleteModal.classList.remove("active");
+    };
+
+    if (tableBody) {
+      tableBody.addEventListener("click", async (e) => {
+        const target = e.target;
+        // Cek apakah yang diklik adalah tombol hapus
+        if (target.classList.contains("reject")) {
+          const button = target;
+          eventIdToDelete = button.dataset.id; // Simpan ID event
+          const eventTitle = button
+            .closest("tr")
+            .querySelector("td:first-child").textContent;
+
+          // Tampilkan nama event di dalam modal dan buka modalnya
+          deleteConfirmationText.textContent = `Anda yakin ingin menghapus event "${eventTitle}"? Tindakan ini tidak bisa dibatalkan.`;
+          deleteModal.classList.add("active");
+        }
+      });
+    }
+
+    // Listener untuk tombol "Batal"
+    cancelDeleteBtn.addEventListener("click", closeDeleteModal);
+
+    // Listener untuk area gelap di sekitar modal
+    deleteModal.addEventListener("click", (e) => {
+      if (e.target === deleteModal) {
+        closeDeleteModal();
+      }
+    });
+
+    // Listener untuk tombol "Ya, Hapus"
+    confirmDeleteBtn.addEventListener("click", async () => {
+      if (!eventIdToDelete) return;
+
+      try {
+        // Kirim perintah HAPUS ke API
+        const response = await fetch(`/api/events/${eventIdToDelete}`, {
+          method: "DELETE",
+        });
+
+        if (response.ok) {
+          // Jika berhasil, hapus baris dari tabel
+          const rowToDelete = document
+            .querySelector(`button[data-id="${eventIdToDelete}"]`)
+            .closest("tr");
+          rowToDelete.remove();
+        } else {
+          const error = await response.json();
+          alert("Gagal menghapus: " + error.message);
+        }
+      } catch (error) {
+        alert("Terjadi kesalahan jaringan.");
+      } finally {
+        // Tutup modal dan reset ID
+        closeDeleteModal();
+        eventIdToDelete = null;
+      }
+    });
+  });
+</script>

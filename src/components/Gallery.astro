@@ -1,5 +1,8 @@
 ---
 import { getImage } from "astro:assets";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
 
 // Perintah ini secara otomatis membaca semua gambar dari folder /src/assets/galeri
 const semuaGambar = import.meta.glob(
@@ -35,24 +38,33 @@ for (const path in semuaGambar) {
     {/* ... Tombol filter Anda ... */}
   </div>
 
-  <div class="gallery-grid">
-    {
-      dataGaleri.map((item) => (
-        <div class="gallery-item">
-          <img
-            src={item.gambar.src}
-            width={item.gambar.attributes.width}
-            height={item.gambar.attributes.height}
-            alt={`Poster Design by ${item.artis}`}
-            loading="lazy"
-          />
-          <div class="gallery-overlay">
-            <h4>Poster</h4>
-            <p>by {item.artis}</p>
-          </div>
-        </div>
-      ))
-    }
+  <div class="swiper-container">
+    <div class="swiper">
+      <div class="swiper-wrapper">
+        {
+          dataGaleri.map((item) => (
+            <div class="swiper-slide">
+              <div class="gallery-item">
+                <img
+                  src={item.gambar.src}
+                  width={item.gambar.attributes.width}
+                  height={item.gambar.attributes.height}
+                  alt={`Poster Design by ${item.artis}`}
+                  loading="lazy"
+                />
+                <div class="gallery-overlay">
+                  <h4>Poster</h4>
+                  <p>by {item.artis}</p>
+                </div>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+      <div class="swiper-button-prev"></div>
+      <div class="swiper-button-next"></div>
+      <div class="swiper-pagination"></div>
+    </div>
   </div>
 </section>
 
@@ -61,33 +73,33 @@ for (const path in semuaGambar) {
   <img class="lightbox-content" id="lightbox-img" />
 </div>
 
-<script is:inline>
+<script>
+  import Swiper from "swiper";
+  import { Navigation, Pagination, Autoplay } from "swiper/modules";
+
   document.addEventListener("DOMContentLoaded", function () {
-    // Logika untuk Lightbox
-    const galleryItems = document.querySelectorAll(".gallery-item");
-    const lightbox = document.getElementById("lightbox");
-    const lightboxImg = document.getElementById("lightbox-img");
-    const closeBtn = lightbox ? lightbox.querySelector(".close-button") : null;
-
-    // Pastikan semua elemen yang dibutuhkan ada di halaman
-    if (lightbox && galleryItems.length > 0 && closeBtn) {
-      galleryItems.forEach((item) => {
-        item.addEventListener("click", () => {
-          const imgSrc = item.querySelector("img").src;
-          lightboxImg.src = imgSrc;
-          lightbox.classList.add("active");
-        });
-      });
-
-      const closeLightbox = () => lightbox.classList.remove("active");
-
-      closeBtn.addEventListener("click", closeLightbox);
-
-      lightbox.addEventListener("click", (e) => {
-        if (e.target === lightbox) {
-          closeLightbox();
-        }
-      });
-    }
+    const swiper = new Swiper(".swiper", {
+      modules: [Navigation, Pagination, Autoplay],
+      loop: true,
+      grabCursor: true,
+      slidesPerView: 1,
+      spaceBetween: 30,
+      breakpoints: {
+        640: { slidesPerView: 2 },
+        1024: { slidesPerView: 3 },
+      },
+      autoplay: {
+        delay: 3500,
+        disableOnInteraction: true,
+      },
+      pagination: {
+        el: ".swiper-pagination",
+        clickable: true,
+      },
+      navigation: {
+        nextEl: ".swiper-button-next",
+        prevEl: ".swiper-button-prev",
+      },
+    });
   });
 </script>

@@ -1,0 +1,140 @@
+---
+import Layout from "../../../layouts/Layout.astro";
+const clientConfig = { connectionString: import.meta.env.DATABASE_URL };
+export const DELETE: APIRoute = async ({ params }) => {
+  const { id } = params;
+  const client = new Client(clientConfig);
+
+  try {
+    await client.connect();
+
+    // Perintah SQL untuk menghapus data berdasarkan ID
+    const query = `DELETE FROM events WHERE id = $1`;
+    const values = [id];
+
+    await client.query(query, values);
+
+    // Kirim respon sukses tanpa konten
+    return new Response(null, { status: 204 });
+  } catch (error) {
+    console.error(error);
+    return new Response(JSON.stringify({ message: "Gagal menghapus event." }), {
+      status: 500,
+    });
+  } finally {
+    await client.end();
+  }
+};
+
+const { id } = Astro.params;
+const isEditMode = id !== "new";
+let eventData = {
+  title: "",
+  description: "",
+  host: "",
+  event_date: "",
+  event_type: "",
+};
+
+if (isEditMode) {
+  try {
+    const response = await fetch(`${Astro.url.origin}/api/events/${id}`);
+    if (response.ok) {
+      const data = await response.json();
+      // Format tanggal YYYY-MM-DD untuk input type="date"
+      data.event_date = new Date(data.event_date).toISOString().split("T")[0];
+      eventData = data;
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+---
+
+<Layout>
+  <main class="admin-page">
+    <div class="form-container">
+      <h2 class="section-title">
+        {isEditMode ? "Edit Event" : "Tambah Event Baru"}
+      </h2>
+      <form id="event-form">
+        <input type="hidden" name="id" value={eventData.id} />
+
+        <div class="form-group">
+          <label for="title">Judul Event</label>
+          <input
+            type="text"
+            id="title"
+            name="title"
+            value={eventData.title}
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="event_date">Tanggal Acara</label>
+          <input
+            type="date"
+            id="event_date"
+            name="event_date"
+            value={eventData.event_date}
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="host">Host</label>
+          <input type="text" id="host" name="host" value={eventData.host} />
+        </div>
+        <div class="form-group">
+          <label for="event_type">Tipe Event</label>
+          <input
+            type="text"
+            id="event_type"
+            name="event_type"
+            value={eventData.event_type}
+            placeholder="Collaboration, Tagwall, Lomba..."
+          />
+        </div>
+        <div class="form-group">
+          <label for="description">Deskripsi</label>
+          <textarea id="description" name="description" rows="5"
+            >{eventData.description}</textarea
+          >
+        </div>
+
+        <div class="form-actions">
+          <a href="/admin/events" class="secondary-button">Batal</a>
+          <button type="submit" class="cta-button">Simpan Perubahan</button>
+        </div>
+      </form>
+    </div>
+  </main>
+</Layout>
+
+<script define:vars={{ isEditMode, eventId: id }}>
+  const form = document.getElementById("event-form");
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+
+    const url = isEditMode ? `/api/events/${eventId}` : "/api/events";
+    const method = isEditMode ? "PUT" : "POST";
+
+    try {
+      const response = await fetch(url, {
+        method: method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        window.location.href = "/admin/events"; // Kembali ke daftar event
+      } else {
+        const error = await response.json();
+        alert("Gagal menyimpan: " + error.message);
+      }
+    } catch (error) {
+      alert("Terjadi kesalahan jaringan.");
+    }
+  });
+</script>

@@ -3,23 +3,27 @@ import jwt from "jsonwebtoken";
 
 export const onRequest = defineMiddleware(
   async ({ cookies, url, redirect }, next) => {
-    // Hanya jalankan satpam untuk halaman di bawah /admin
+    // 1. Satpam hanya berjaga di gerbang '/admin'
     if (url.pathname.startsWith("/admin")) {
+      // 2. Periksa apakah pengunjung punya 'tiket masuk' (cookie)
       const token = cookies.get("auth_token")?.value;
 
+      // 3. Jika tidak punya tiket, usir ke halaman login
       if (!token) {
-        return redirect("/login"); // Alihkan ke halaman login jika tidak ada tiket
+        return redirect("/login", 307);
       }
 
       try {
-        // Periksa apakah tiketnya valid
+        // 4. Jika punya tiket, periksa apakah tiketnya asli dan tidak kedaluwarsa
         jwt.verify(token, import.meta.env.JWT_SECRET);
       } catch (error) {
-        return redirect("/login"); // Alihkan jika tiket tidak valid
+        // Jika tiket palsu/kedaluwarsa, hapus tiketnya dan usir ke halaman login
+        cookies.delete("auth_token", { path: "/" });
+        return redirect("/login", 307);
       }
     }
 
-    // Jika semua aman, izinkan masuk
+    // 5. Jika semua aman, izinkan pengunjung masuk
     return next();
   }
 );
