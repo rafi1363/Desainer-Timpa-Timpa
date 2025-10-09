@@ -1,0 +1,173 @@
+---
+import Layout from "../../../layouts/Layout.astro";
+
+// Ambil data galeri dari API
+let galleryItems = [];
+try {
+  const response = await fetch(Astro.url.origin + "/api/gallery");
+  if (response.ok) {
+    galleryItems = await response.json();
+  }
+} catch (e) {
+  console.error(e);
+}
+---
+
+<Layout>
+  <main class="admin-page">
+    <div class="admin-header">
+      <h2 class="section-title">Kelola Galeri</h2>
+      <div class="header-actions">
+        <a href="/admin" class="secondary-button">← Kembali</a>
+        <a href="/admin/gallery/new" class="cta-button">Tambah Gambar Baru</a>
+      </div>
+    </div>
+
+    <div class="table-container responsive-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Gambar</th>
+            <th>Artis</th>
+            <th>Kategori</th>
+            <th>Likes</th>
+            <th>Tanggal Unggah</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            galleryItems.length === 0 ? (
+              <tr class="no-hover">
+                <td colspan="6">Belum ada gambar di galeri.</td>
+              </tr>
+            ) : (
+              galleryItems.map((item) => {
+                const uploadedDate = new Date(
+                  item.created_at
+                ).toLocaleDateString("id-ID", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                });
+                return (
+                  <tr>
+                    <td data-label="Gambar">
+                      <img
+                        src={item.image_url}
+                        alt={item.artis}
+                        width="60"
+                        style="border-radius: 8px; object-fit: cover; aspect-ratio: 1/1;"
+                      />
+                    </td>
+                    <td data-label="Artis">@{item.artis}</td>
+                    <td data-label="Tipe Desain">
+                      <span class="event-tag">{item.design_type}</span>
+                    </td>
+                    <td data-label="Likes">{item.likes}</td>
+                    <td data-label="Tanggal Unggah">{uploadedDate}</td>
+                    <td data-label="Aksi" class="actions-cell">
+                      <button class="action-btn reject" data-id={item.id}>
+                        Hapus
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
+            )
+          }
+        </tbody>
+      </table>
+    </div>
+  </main>
+  <div id="delete-modal" class="modal">
+    <div class="modal-content">
+      <h3>Konfirmasi Hapus</h3>
+      <p
+        id="delete-confirmation-text"
+        style="margin: 1rem 0 2rem; color: #ccc;"
+      >
+        Anda yakin ingin menghapus item ini? [cite: 35]
+      </p>
+      <div class="modal-actions">
+        <button id="cancel-delete-btn" class="modal-button cancel">Batal</button
+        >
+        <button id="confirm-delete-btn" class="modal-button confirm-danger"
+          >Ya, Hapus</button
+        >
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  // Script untuk fungsionalitas tombol hapus DENGAN MODAL KUSTOM
+  document.addEventListener("DOMContentLoaded", () => {
+    const table = document.querySelector("table");
+    const deleteModal = document.getElementById("delete-modal");
+    const cancelDeleteBtn = document.getElementById("cancel-delete-btn");
+    const confirmDeleteBtn = document.getElementById("confirm-delete-btn");
+    const deleteConfirmationText = document.getElementById(
+      "delete-confirmation-text"
+    );
+
+    let itemIdToDelete = null;
+
+    const closeDeleteModal = () => {
+      deleteModal.classList.remove("active");
+    };
+
+    if (table) {
+      table.addEventListener("click", async (e) => {
+        const target = e.target;
+        if (
+          target.classList.contains("action-btn") &&
+          target.classList.contains("reject")
+        ) {
+          itemIdToDelete = target.dataset.id;
+          const artist = target
+            .closest("tr")
+            .querySelector('td[data-label="Artis"]').textContent;
+
+          // Tampilkan modal kustom, BUKAN confirm() dari browser
+          deleteConfirmationText.textContent = `Anda yakin ingin menghapus karya dari ${artist}? Tindakan ini tidak dapat dibatalkan.`;
+          deleteModal.classList.add("active");
+        }
+      });
+    }
+
+    // Listener untuk tombol "Batal" dan area gelap
+    cancelDeleteBtn.addEventListener("click", closeDeleteModal);
+    deleteModal.addEventListener("click", (e) => {
+      if (e.target === deleteModal) {
+        closeDeleteModal();
+      }
+    });
+
+    // Listener untuk tombol konfirmasi "Ya, Hapus"
+    confirmDeleteBtn.addEventListener("click", async () => {
+      if (!itemIdToDelete) return;
+
+      try {
+        const response = await fetch(`/api/gallery/${itemIdToDelete}`, {
+          method: "DELETE",
+        });
+
+        if (response.ok) {
+          document
+            .querySelector(`button[data-id="${itemIdToDelete}"]`)
+            .closest("tr")
+            .remove();
+        } else {
+          const error = await response.json();
+          alert(`Gagal menghapus: ${error.message || "Error tidak diketahui"}`);
+        }
+      } catch (error) {
+        alert("Terjadi kesalahan jaringan saat mencoba menghapus.");
+      } finally {
+        closeDeleteModal();
+        itemIdToDelete = null;
+      }
+    });
+  });
+</script>

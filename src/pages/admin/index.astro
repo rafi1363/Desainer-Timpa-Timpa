@@ -10,6 +10,7 @@ import Layout from "../../layouts/Layout.astro";
       <p class="welcome-message">Selamat datang, <strong>Admin DTT</strong></p>
       <div class="header-actions">
         <a href="/admin/events" class="cta-button">Kelola Event</a>
+        <a href="/admin/gallery" class="cta-button">Kelola Galeri</a>
       </div>
       <button id="logout-btn" class="logout-button">Logout</button>
     </div>
@@ -47,7 +48,9 @@ import Layout from "../../layouts/Layout.astro";
         </thead>
         <tbody id="applicants-table-body">
           <tr>
-            <td colspan="6">Memuat data pendaftar...</td>
+            <td colspan="6">
+              <div class="skeleton" style="height: 24px; width: 80%;"></div>
+            </td>
           </tr>
         </tbody>
       </table>

@@ -82,7 +82,13 @@ import Layout from "../layouts/Layout.astro";
   </main>
 </Layout>
 
-<script is:inline>
+<script>
+  import {
+    showProgressBar,
+    updateProgress,
+    showSpinner,
+    hideOverlay,
+  } from "../scripts/ui-helper";
   // Ganti dengan data dari akun Cloudinary Anda
   const CLOUDINARY_CLOUD_NAME = "dsnvmjdni";
   const CLOUDINARY_UPLOAD_PRESET = "hziqmdzw";
@@ -112,6 +118,7 @@ import Layout from "../layouts/Layout.astro";
   // --- EVENT LISTENER UNTUK SUBMIT FORMULIR ---
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
+    showProgressBar("Mengunggah karya...");
     const submitButton = form.querySelector('button[type="submit"]');
     submitButton.disabled = true;
     submitButton.textContent = "Mengunggah Karya...";
@@ -138,11 +145,11 @@ import Layout from "../layouts/Layout.astro";
       const cloudinaryData = await cloudinaryRes.json();
       hiddenUrlInput.value = cloudinaryData.secure_url;
 
-      submitButton.textContent = "Menyimpan Pendaftaran...";
+      showSpinner("Menyimpan data..."); // Ganti ke spinner setelah upload selesai
 
       // Langkah 2: Kirim data ke API kita
       const appFormData = new FormData(form);
-      const appRes = await fetch("/api/register", {
+      const appRes = await fetch("/api/submit-application", {
         method: "POST",
         body: appFormData,
       });
@@ -162,13 +169,16 @@ import Layout from "../layouts/Layout.astro";
         form.reset();
         submitButton.disabled = false;
         submitButton.textContent = "Kirim Pendaftaran";
+        hideOverlay();
       } else {
         throw new Error(result.message);
+        hideOverlay();
       }
     } catch (error) {
       alert("Terjadi kesalahan: " + error.message);
       submitButton.disabled = false;
       submitButton.textContent = "Kirim Pendaftaran";
+      hideOverlay();
     }
   });
 </script>

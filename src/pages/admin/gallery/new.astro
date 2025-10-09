@@ -1,0 +1,130 @@
+---
+import Layout from "../../../layouts/Layout.astro";
+---
+
+<Layout>
+  <main class="admin-page">
+    <div class="form-container">
+      <h2 class="section-title">Tambah Gambar Baru ke Galeri</h2>
+      <form id="gallery-form">
+        <input type="hidden" id="image_url" name="image_url" />
+
+        <div class="form-group">
+          <label for="artis">Nama Artis/Instagram</label>
+          <input
+            type="text"
+            id="artis"
+            name="artis"
+            placeholder="tanpa @"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="design_type">Tipe Desain</label>
+          <div class="custom-select-wrapper">
+            <select id="design_type" name="design_type" required>
+              <option value="" disabled selected>Pilih salah satu...</option>
+              <option value="Desain Poster">Desain Poster</option>
+              <option value="Kolaborasi">Kolaborasi</option>
+              <option value="Tagwall">Tagwall</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="image_file">Unggah File Gambar</label>
+          <div class="custom-file-upload">
+            <input
+              type="file"
+              id="image_file"
+              name="image_file"
+              accept="image/*"
+              required
+            />
+            <label for="image_file" class="file-upload-button"
+              >Choose File</label
+            >
+            <span id="file-name-display" class="file-name">No file chosen</span>
+          </div>
+          <small>Format: JPG, PNG, WEBP. Maks: 5MB.</small>
+        </div>
+
+        <div class="form-actions">
+          <a href="/admin/gallery" class="secondary-button">Batal</a>
+          <button type="submit" class="cta-button">Simpan Gambar</button>
+        </div>
+      </form>
+    </div>
+  </main>
+</Layout>
+
+<script>
+  import {
+    showProgressBar,
+    updateProgress,
+    showSpinner,
+    hideOverlay,
+  } from "../../../scripts/ui-helper";
+  // Script untuk upload ke Cloudinary dan submit ke API
+  // ... (seluruh isi <script> Anda sebelumnya bisa disalin kembali ke sini, tidak ada perubahan di dalamnya)
+  const CLOUDINARY_CLOUD_NAME = "dsnvmjdni";
+  const CLOUDINARY_UPLOAD_PRESET = "hziqmdzw";
+
+  const form = document.getElementById("gallery-form");
+  const fileInput = document.getElementById("image_file");
+  const hiddenUrlInput = document.getElementById("image_url");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    showProgressBar("Mengunggah karya..."); // Gunakan fungsi helper
+    const submitButton = form.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    submitButton.textContent = "Mengunggah...";
+
+    const file = fileInput.files[0];
+    if (!file) {
+      alert("Pilih file gambar terlebih dahulu.");
+      submitButton.disabled = false;
+      return;
+    }
+
+    const cloudinaryFormData = new FormData();
+    cloudinaryFormData.append("file", file);
+    cloudinaryFormData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+    try {
+      const cloudinaryRes = await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+        {
+          method: "POST",
+          body: cloudinaryFormData,
+        }
+      );
+      if (!cloudinaryRes.ok) throw new Error("Gagal unggah ke Cloudinary.");
+
+      const cloudinaryData = await cloudinaryRes.json();
+      hiddenUrlInput.value = cloudinaryData.secure_url;
+
+      submitButton.textContent = "Menyimpan...";
+      showSpinner("Menyimpan data..."); // Ganti ke spinner setelah upload selesai
+
+      const appFormData = new FormData(form);
+      const appRes = await fetch("/api/gallery", {
+        method: "POST",
+        body: appFormData,
+      });
+
+      if (appRes.ok) {
+        window.location.href = "/admin/gallery";
+      } else {
+        const error = await appRes.json();
+        throw new Error(error.message);
+      }
+    } catch (error) {
+      alert("Terjadi kesalahan: " + error.message);
+      submitButton.disabled = false;
+      submitButton.textContent = "Simpan Gambar";
+    }
+  });
+</script>

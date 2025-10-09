@@ -1,0 +1,185 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import "../styles/gallery.css";
+
+let galeri = [];
+try {
+  const response = await fetch(new URL("/api/gallery", Astro.url));
+  if (response.ok) {
+    galeri = await response.json();
+  }
+} catch (e) {
+  console.error("Gagal mengambil data galeri:", e);
+}
+---
+
+<Layout>
+  <Header />
+  <main>
+    <section class="gallery-section">
+      <h2 class="section-title">Galeri Desain DTT</h2>
+      <div class="gallery-filters">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="today">Today</button>
+        <button class="filter-btn" data-filter="weekly">This Week</button>
+        <button class="filter-btn" data-filter="monthly">Monthly Archive</button
+        >
+        <button class="filter-btn" data-filter="Kolaborasi"
+          >Collaboration</button
+        >
+        <button class="filter-btn" data-filter="Tagwall">Tagwall</button>
+      </div>
+
+      <div class="gallery-grid">
+        {
+          galeri.map((item) => (
+            <div
+              class="gallery-item"
+              data-id={item.id}
+              data-timestamp={item.created_at}
+              data-type={item.design_type || ""}
+            >
+              <img
+                src={item.image_url}
+                alt={`Poster by @${item.artis}`}
+                loading="lazy"
+              />
+              <div class="gallery-overlay">
+                <h4>{item.design_type || "Poster Design"}</h4>
+                <p>
+                  by{" "}
+                  <a href={`/members/${item.artis}`} class="artist-link">
+                    @{item.artis}
+                  </a>
+                </p>
+                <div class="stats">
+                  <span class="likes-container">
+                    <button class="like-btn">❤️</button>
+                    <span class="like-count">{item.likes}</span>
+                  </span>
+                  <span class="timestamp" />
+                </div>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+  </main>
+  <Footer />
+</Layout>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    // --- Variabel Waktu ---
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    // Menghitung awal minggu (Senin)
+    const startOfWeek = new Date(today);
+    const dayOfWeek = today.getDay(); // Minggu = 0, Senin = 1, ...
+    const diff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1); // Adjust for Sunday
+    startOfWeek.setDate(diff);
+
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    // --- Inisialisasi Halaman ---
+    const galleryItems = document.querySelectorAll(".gallery-item");
+
+    // 1. Proses setiap item untuk memberikan SEMUA kategori waktu yang relevan
+    galleryItems.forEach((item) => {
+      const timestamp = new Date(item.dataset.timestamp);
+      const timeCategories = []; // Gunakan array untuk menyimpan semua kategori
+
+      // Cek apakah masuk kategori bulanan (semua di bulan ini)
+      if (timestamp >= startOfMonth) {
+        timeCategories.push("monthly");
+      }
+
+      // Cek apakah masuk kategori mingguan (semua di minggu ini)
+      if (timestamp >= startOfWeek) {
+        timeCategories.push("weekly");
+      }
+
+      // Cek apakah masuk kategori hari ini
+      if (timestamp >= today) {
+        timeCategories.push("today");
+      }
+
+      // Simpan semua kategori sebagai string yang dipisahkan spasi
+      item.dataset.timeCategories = timeCategories.join(" ");
+
+      // Tampilkan tanggal seperti biasa
+      item.querySelector(".timestamp").textContent =
+        `📅 ${timestamp.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}`;
+    });
+
+    // --- Logika Filter yang Diperbarui ---
+    const filterButtons = document.querySelectorAll(".filter-btn");
+
+    const applyFilter = (filterValue) => {
+      galleryItems.forEach((item) => {
+        const timeCats = item.dataset.timeCategories; // e.g., "today weekly monthly"
+        const typeCat = item.dataset.type;
+
+        let show = false;
+        if (filterValue === "all") {
+          show = true;
+        } else if (["today", "weekly", "monthly"].includes(filterValue)) {
+          // Cek apakah string kategori waktu mengandung nilai filter
+          show = timeCats.includes(filterValue);
+        } else {
+          // Filter berdasarkan tipe desain (Kolaborasi, dll)
+          show = typeCat === filterValue;
+        }
+        item.style.display = show ? "block" : "none";
+      });
+    };
+
+    filterButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        filterButtons.forEach((btn) => btn.classList.remove("active"));
+        button.classList.add("active");
+        applyFilter(button.dataset.filter);
+      });
+    });
+
+    // 2. Logika untuk Like/Unlike
+    galleryItems.forEach((item) => {
+      const likeButton = item.querySelector(".like-btn");
+      const likeCountSpan = item.querySelector(".like-count");
+      const id = item.dataset.id;
+
+      likeButton.addEventListener("click", async (e) => {
+        e.stopPropagation();
+
+        const isLiked = likeButton.classList.contains("liked");
+        const method = isLiked ? "DELETE" : "POST";
+
+        try {
+          const response = await fetch(`/api/like/${id}`, { method });
+          if (response.ok) {
+            const data = await response.json();
+            likeCountSpan.textContent = data.likes;
+
+            if (isLiked) {
+              likeButton.classList.remove("liked");
+              likedItems = likedItems.filter((likedId) => likedId !== id);
+            } else {
+              likeButton.classList.add("liked");
+              likedItems.push(id);
+            }
+            localStorage.setItem(
+              "dtt_liked_gallery",
+              JSON.stringify(likedItems)
+            );
+          }
+        } catch (error) {
+          console.error("Gagal mengirim like/unlike:", error);
+        }
+      });
+    });
+  });
+</script>

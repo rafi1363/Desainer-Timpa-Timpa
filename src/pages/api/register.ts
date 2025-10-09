@@ -1,69 +1,58 @@
-import type { APIRoute } from 'astro';
-import { Client } from 'pg';
+import type { APIRoute } from "astro";
+import { Client } from "pg";
+import bcrypt from "bcrypt"; // [PERUBAHAN] Menggunakan bcrypt, bukan argon2
 
-// Fungsi ini akan berjalan di server Netlify setiap kali ada request POST ke /api/register
+const clientConfig = { connectionString: import.meta.env.DATABASE_URL };
+
 export const POST: APIRoute = async ({ request }) => {
-  // 1. Ambil semua data yang dikirim dari formulir
   const formData = await request.formData();
-  const nama_asli = formData.get('nama_asli');
-  const nama_ig = formData.get('nama_ig');
-  const nomor_telepon = formData.get('nomor_telepon');
-  const jawaban_lain = formData.get('jawaban_lain');
-  const karya = formData.get('karya'); // Ini adalah file, kita akan tangani nanti
+  const username = formData.get("username") as string;
+  const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
 
-  // Validasi sederhana: pastikan data penting tidak kosong
-  if (!nama_asli || !nama_ig || !jawaban_lain) {
-    return new Response(JSON.stringify({ message: "Nama lengkap, Instagram, dan alasan harus diisi." }), { status: 400 });
+  if (!username || !email || !password) {
+    return new Response(
+      JSON.stringify({ message: "Semua kolom wajib diisi." }),
+      { status: 400 }
+    );
+  }
+  if (password.length < 6) {
+    return new Response(
+      JSON.stringify({ message: "Password minimal harus 6 karakter." }),
+      { status: 400 }
+    );
   }
 
-  // TODO: Logika untuk upload file karya ke layanan storage.
-  // Untuk sekarang, kita akan fokus menyimpan data teks terlebih dahulu.
-  const karya_url = formData.get('karya_url');
+  // [PERUBAHAN] Enkripsi password menggunakan bcrypt
+  const saltRounds = 10;
+  const password_hash = await bcrypt.hash(password, saltRounds);
 
-    console.log("\n--- Memulai Proses Pendaftaran Baru ---");
-  const connectionString = import.meta.env.DATABASE_URL;
-
-  // Cek apakah variabelnya ada atau tidak
-  if (!connectionString) {
-    console.error("FATAL ERROR: Environment variable DATABASE_URL tidak ditemukan!");
-    return new Response(JSON.stringify({ message: "Konfigurasi server error." }), { status: 500 });
-  }
-
-  // Cetak isi connection string ke terminal untuk kita lihat
-  console.log("Connection String yang digunakan:", connectionString);
-    
-  // 2. Siapkan koneksi ke database Neon menggunakan "kunci rahasia"
-  const client = new Client({
-    connectionString: import.meta.env.DATABASE_URL, // Membaca variabel dari Netlify
-  });
-
+  const client = new Client(clientConfig);
   try {
-    // 3. Buka koneksi ke database
     await client.connect();
-    
-    // 4. Siapkan perintah SQL untuk memasukkan data baru
-    const query = `
-      INSERT INTO applicants (nama_asli, nama_ig, nomor_telepon, jawaban_lain, karya_url) 
-      VALUES ($1, $2, $3, $4, $5)
-    `;
-    const values = [nama_asli, nama_ig, nomor_telepon, jawaban_lain, karya_url];
-    
-    // 5. Eksekusi perintah SQL
-    await client.query(query, values);
-    
-    // 6. Kirim respon sukses kembali ke front-end
-    return new Response(JSON.stringify({
-      message: "Pendaftaran berhasil! Silakan bergabung ke grup WhatsApp.",
-      // Ganti dengan link grup WhatsApp Anda yang sebenarnya
-      whatsapp_link: "https://chat.whatsapp.com/BuMBWLJpdKi32ut03R0dux" 
-    }), { status: 200 });
+    const query =
+      "INSERT INTO members (username, email, password_hash) VALUES ($1, $2, $3)";
+    await client.query(query, [username, email, password_hash]);
 
+    return new Response(
+      JSON.stringify({
+        message: "Registrasi berhasil! Anda akan dialihkan...",
+      }),
+      { status: 201 }
+    );
   } catch (error) {
-    console.error("--- ERROR SAAT KONEKSI ATAU QUERY ---");
-    console.error(error); // Cetak detail error dari database
-    return new Response(JSON.stringify({ message: "Terjadi kesalahan pada server." }), { status: 500 });
+    if (error.code === "23505") {
+      return new Response(
+        JSON.stringify({ message: "Username atau email ini sudah terdaftar." }),
+        { status: 409 }
+      );
+    }
+    console.error(error);
+    return new Response(
+      JSON.stringify({ message: "Registrasi gagal karena kesalahan server." }),
+      { status: 500 }
+    );
   } finally {
-      await client.end();
-    console.log("--- Proses Selesai ---");
+    await client.end();
   }
 };

@@ -51,49 +51,31 @@ export const PUT: APIRoute = async ({ params, request }) => {
 
 export const DELETE: APIRoute = async ({ params }) => {
   const { id } = params;
-
-  // Konfigurasi Cloudinary menggunakan environment variable
-  cloudinary.config({
-    cloud_name: import.meta.env.CLOUDINARY_CLOUD_NAME,
-    api_key: import.meta.env.CLOUDINARY_API_KEY,
-    api_secret: import.meta.env.CLOUDINARY_API_SECRET,
-    secure: true,
-  });
-
   const client = new Client({ connectionString: import.meta.env.DATABASE_URL });
 
   try {
     await client.connect();
 
-    // 1. Ambil dulu URL karya dari database SEBELUM dihapus
-    const selectResult = await client.query(
-      "SELECT karya_url FROM applicants WHERE id = $1",
-      [id]
-    );
+    // Langsung hapus event dari database berdasarkan ID
+    const result = await client.query("DELETE FROM events WHERE id = $1", [id]);
 
-    if (selectResult.rowCount === 0) {
-      return new Response("Data tidak ditemukan.", { status: 404 });
-    }
-    const karyaUrl = selectResult.rows[0].karya_url;
-
-    // 2. Hapus data dari database Neon
-    await client.query("DELETE FROM applicants WHERE id = $1", [id]);
-
-    // 3. Hapus gambar dari Cloudinary jika URL-nya ada
-    if (karyaUrl) {
-      // Ekstrak public_id dari URL
-      const publicId = karyaUrl.split("/").pop()?.split(".")[0];
-      if (publicId) {
-        await cloudinary.uploader.destroy(publicId);
-      }
+    // Periksa apakah ada baris yang benar-benar dihapus
+    if (result.rowCount === 0) {
+      return new Response("Data event tidak ditemukan untuk dihapus.", {
+        status: 404,
+      });
     }
 
+    // Jika berhasil, kirim respons 204 No Content
     return new Response(null, { status: 204 });
   } catch (error) {
-    console.error(error);
-    return new Response(JSON.stringify({ message: "Gagal menghapus data." }), {
-      status: 500,
-    });
+    console.error("Gagal menghapus event:", error);
+    return new Response(
+      JSON.stringify({ message: "Gagal menghapus event di server." }),
+      {
+        status: 500,
+      }
+    );
   } finally {
     await client.end();
   }

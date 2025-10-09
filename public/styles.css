@@ -122,8 +122,8 @@ body {
 header {
   /* Menggunakan Flexbox untuk alignment horizontal */
   display: flex;
-  justify-content: space-between; /* Mendorong item ke sisi kiri dan kanan */
   align-items: center; /* Menyelaraskan item secara vertikal di tengah */
+  gap: 2rem; /* Beri jarak antar elemen utama (logo dan nav) */
 
   padding: 0.5rem 2.5rem; /* Padding dibuat lebih ramping untuk navbar */
   background: linear-gradient(135deg, #1b1b1b 0%, #0f0f0f 100%);
@@ -161,6 +161,7 @@ header .subtitle {
   /* Dihapus: justify-content: center; */
   gap: 1.5rem; /* Jarak antar link sedikit dikurangi */
   margin: 0; /* Reset margin */
+  margin-left: auto; /* [TAMBAHKAN INI] Mendorong navigasi ke kanan */
 }
 .nav a {
   color: #aaa;
@@ -333,11 +334,8 @@ html {
 }
 
 .gallery-logo {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%); /* Trik centering absolut */
-  height: 100px; /* Sesuaikan tinggi logo */
+  height: 50px; /* Kita sesuaikan tingginya agar pas di header */
+  /* Semua properti lain (position, left, top, transform) dihapus */
 }
 
 .gallery-item {
@@ -943,6 +941,10 @@ footer {
     color: var(--color-accent, #f7e479);
     content: attr(data-label); /* Ambil teks dari atribut 'data-label' */
   }
+
+  header {
+    justify-content: space-between; /* Paksa item ke sisi berlawanan */
+  }
   /* Tampilkan tombol hamburger */
   .hamburger {
     display: block;
@@ -1456,37 +1458,44 @@ th[data-sort].sorted-desc::after {
   text-decoration: underline;
 }
 
+/* === STYLING BARU UNTUK SWIPER CAROUSEL === */
+
+/* Wadah utama, bisa kita gunakan untuk padding horizontal */
 .swiper-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 1rem;
+  width: 100%;
+  padding: 4rem 0; /* Memberi ruang di atas dan bawah */
 }
 
 .swiper {
-  padding: 1rem 4rem 4rem 4rem; /* Beri ruang untuk tombol dan paginasi */
+  width: 100%;
+  padding-top: 50px;
+  padding-bottom: 50px;
 }
 
 .swiper-slide {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: auto;
+  background-position: center;
+  background-size: cover;
+  /* HAPUS 'width' dari sini. Biarkan Swiper yang mengatur. */
+  /* Atur lebar dan tinggi slide secara spesifik untuk efek coverflow */
+  width: 300px;
+  height: 400px;
 }
 
-/* Kustomisasi Tampilan Tombol & Paginasi Swiper */
+/* Atur gambar di dalam slide agar pas dan menarik */
+.swiper-slide img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 16px; /* Beri sudut melengkung pada gambar */
+  /* Beri bayangan agar terlihat lebih premium */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* Kustomisasi Tampilan Tombol & Paginasi Swiper (opsional, tapi disarankan) */
 :root {
-  --swiper-theme-color: #f7e479; /* Warna aksen Anda */
+  --swiper-theme-color: #f7e479;
   --swiper-navigation-size: 30px;
-}
-
-.swiper-button-prev,
-.swiper-button-next {
-  color: var(--swiper-theme-color);
-  transition: transform 0.2s ease;
-}
-.swiper-button-prev:hover,
-.swiper-button-next:hover {
-  transform: scale(1.2);
 }
 
 .swiper-pagination-bullet-active {
@@ -1631,4 +1640,278 @@ th[data-sort].sorted-desc::after {
 .secondary-button {
   background: #333;
   color: white;
+}
+
+/* === Perbaikan Header Admin === */
+
+/* Wadah utama header */
+.admin-header {
+  display: flex; /* Mengaktifkan Flexbox */
+  justify-content: space-between; /* Memberi jarak merata antar elemen */
+  align-items: center; /* Menyelaraskan elemen secara vertikal di tengah */
+  flex-wrap: wrap; /* Izinkan elemen turun ke bawah jika layar terlalu sempit */
+  gap: 1rem; /* Memberi jarak antar elemen saat wrapping */
+  padding: 1rem 0;
+  border-bottom: 1px solid #333;
+  margin-bottom: 2rem;
+}
+
+/* Pesan selamat datang */
+.welcome-message {
+  margin: 0; /* Hapus margin default */
+  font-size: 1.1rem;
+  flex-grow: 1; /* Biarkan elemen ini memanjang seperlunya */
+}
+
+/* Wadah untuk tombol aksi utama (Kelola Event & Galeri) */
+.header-actions {
+  display: flex;
+  gap: 0.75rem; /* Jarak antar tombol */
+  flex-shrink: 0; /* Mencegah tombol mengecil */
+}
+
+/* Tombol logout */
+.logout-button {
+  margin-left: 1rem; /* Memberi sedikit jarak dari tombol lain */
+}
+
+/* === Aturan untuk Mobile (Responsif) === */
+@media (max-width: 768px) {
+  .admin-header {
+    flex-direction: column; /* Susun elemen secara vertikal */
+    align-items: stretch; /* Buat elemen membentang selebar wadah */
+  }
+
+  .welcome-message {
+    text-align: center; /* Pusatkan teks di mobile */
+    margin-bottom: 1rem; /* Beri jarak ke tombol di bawahnya */
+  }
+
+  .header-actions {
+    justify-content: center; /* Pusatkan tombol aksi */
+  }
+
+  .logout-button {
+    margin: 0; /* Hapus margin di mobile */
+    width: 100%; /* Buat tombol logout selebar layar */
+  }
+}
+
+/* === Gaya untuk Dropdown Kustom === */
+.custom-select-wrapper {
+  position: relative;
+}
+
+.custom-select-wrapper select {
+  /* Hapus tampilan default browser */
+  -webkit-appearance: none;
+  appearance: none;
+
+  /* Gaya dasar */
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: #1c1c1c;
+  color: #eee;
+  border: 1px solid #444;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+/* Membuat panah dropdown kustom */
+.custom-select-wrapper::after {
+  content: "▼";
+  font-size: 0.8rem;
+  color: #f7e479;
+  position: absolute;
+  top: 50%;
+  right: 1rem;
+  transform: translateY(-50%);
+  pointer-events: none; /* Agar bisa klik menembus panah */
+}
+
+/* === Gaya untuk Tombol Upload File Kustom === */
+.custom-file-upload {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Sembunyikan input file asli */
+.custom-file-upload input[type="file"] {
+  display: none;
+}
+
+/* Gaya untuk tombol palsu kita */
+.file-upload-button {
+  display: inline-block;
+  background-color: #333;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.file-upload-button:hover {
+  background-color: #444;
+}
+
+/* Gaya untuk teks nama file */
+.file-name {
+  color: #aaa;
+  font-style: italic;
+}
+
+/* === Gaya Khusus untuk Galeri di Halaman Profil (Diperbarui) === */
+
+.profile-gallery-grid {
+  display: grid;
+  gap: 1rem;
+
+  /* Mobile-First: Default untuk layar terkecil, 2 kolom. */
+  grid-template-columns: repeat(2, 1fr);
+}
+
+/* Aturan untuk layar sedikit lebih besar (misal, ponsel besar & tablet potret) */
+@media (min-width: 480px) {
+  .profile-gallery-grid {
+    /* Ubah menjadi 3 kolom */
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Aturan untuk DESKTOP (layar 768px ke atas) */
+@media (min-width: 768px) {
+  .profile-gallery-grid {
+    /* Ubah menjadi 5 kolom seperti sebelumnya */
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+/* Kita juga pastikan overlay dan teksnya menyesuaikan */
+.profile-gallery-grid .gallery-item .gallery-overlay h4 {
+  font-size: 1rem;
+}
+.profile-gallery-grid .gallery-item .gallery-overlay p {
+  font-size: 0.8rem;
+}
+
+/* Link nama artis di overlay galeri */
+.artist-link {
+  color: #f7e479;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+.artist-link:hover {
+  text-decoration: underline;
+  color: #fff;
+}
+
+/* Avatar di halaman profil publik */
+.public-avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background-color: #1c1c1c;
+  color: #f7e479;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  font-weight: 700;
+  margin: 0 auto 1.5rem;
+  border: 3px solid #f7e479;
+}
+
+/* === Gaya untuk Loading Overlay & Progress Bar === */
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.loading-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.loading-text {
+  color: #aaa;
+  margin-top: 1.5rem;
+  font-weight: 500;
+}
+
+/* Spinner (Animasi Putar) */
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #444;
+  border-top-color: #f7e479;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Progress Bar */
+.progress-container {
+  width: 80%;
+  max-width: 400px;
+  background-color: #333;
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+  height: 20px;
+  display: none; /* Sembunyi secara default */
+}
+
+.progress-bar {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, #f7e479, #ffd700);
+  transition: width 0.2s ease;
+}
+
+#progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #000;
+  font-weight: bold;
+  font-size: 0.8rem;
+}
+
+.skeleton {
+  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background-color: #2a2a2a;
+  border-radius: 8px;
+}
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }

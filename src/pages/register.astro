@@ -1,0 +1,56 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout>
+  <main class="login-page">
+    <div class="login-container">
+      <h2 class="section-title">Daftar Member Baru</h2>
+      <form id="register-form">
+        <div class="form-group">
+          <label for="username">Username (gunakan username instagram)</label>
+          <input type="text" id="username" name="username" required />
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" required />
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required />
+        </div>
+        <button type="submit" class="cta-button">Daftar</button>
+        <p id="message" class="error-message"></p>
+      </form>
+      <a href="/login" class="back-link">Sudah punya akun? Login di sini</a>
+    </div>
+  </main>
+</Layout>
+
+<script>
+  const form = document.getElementById("register-form");
+  const message = document.getElementById("message");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    message.textContent = "";
+    const formData = new FormData(form);
+
+    const response = await fetch("/api/register", {
+      method: "POST",
+      body: formData,
+    });
+
+    const result = await response.json();
+    message.textContent = result.message;
+
+    if (response.ok) {
+      message.style.color = "#4ade80"; // Warna hijau untuk sukses
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 2000);
+    } else {
+      message.style.color = "#dc2626"; // Warna merah untuk error
+    }
+  });
+</script>

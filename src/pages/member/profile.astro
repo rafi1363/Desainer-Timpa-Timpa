@@ -1,0 +1,235 @@
+---
+import { astroCalledServerError } from "astro:actions";
+import Layout from "../../layouts/Layout.astro";
+import { Client } from "pg"; // [BARU] Import database client
+
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect("/login");
+}
+
+// [BARU] Logika untuk mengambil data statistik dari database
+let uploadedCount = 0;
+let totalLikes = 0;
+let memberWorks = []; // [BARU] Array untuk menyimpan karya member
+
+const clientConfig = { connectionString: import.meta.env.DATABASE_URL };
+const client = new Client(clientConfig);
+
+try {
+  await client.connect();
+
+  // Query 1: Menghitung jumlah karya yang diunggah oleh member ini
+  const countResult = await client.query(
+    "SELECT COUNT(*) FROM gallery WHERE member_id = $1",
+    [user.id]
+  );
+  uploadedCount = parseInt(countResult.rows[0].count, 10);
+
+  // Query 2: Menjumlahkan semua likes dari karya member ini
+  const likesResult = await client.query(
+    "SELECT SUM(likes) FROM gallery WHERE member_id = $1",
+    [user.id]
+  );
+  // [BARU] Query 3: Mengambil semua karya yang diunggah oleh member ini
+  const worksResult = await client.query(
+    "SELECT * FROM gallery WHERE member_id = $1 ORDER BY created_at DESC",
+    [user.id]
+  );
+  memberWorks = worksResult.rows;
+  // Jika belum ada likes, hasilnya bisa null, jadi kita beri nilai default 0
+  totalLikes = parseInt(likesResult.rows[0].sum, 10) || 0;
+} catch (error) {
+  console.error("Gagal mengambil statistik member:", error);
+} finally {
+  await client.end();
+}
+---
+
+<Layout>
+  <main class="admin-page" style="text-align: center;">
+    <h2 class="section-title">Selamat Datang di Halaman Profil</h2>
+    <p class="welcome-message" style="margin-bottom: 2rem;">
+      Halo, <strong>{user.username}</strong>!
+    </p>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h4>Karya Diunggah</h4>
+        <p>{uploadedCount}</p>
+      </div>
+      <div class="stat-card">
+        <h4>Total Likes Diterima</h4>
+        <p>{totalLikes}</p>
+      </div>
+    </div>
+
+    <div
+      class="header-actions"
+      style="justify-content: center; margin-top: 2rem;"
+    >
+      <a href="/gallery/submit" class="cta-button">Unggah Karya Baru</a>
+      <button id="logout-btn" class="logout-button">Logout</button>
+    </div>
+    <div class="profile-gallery-section">
+      <h3 class="section-title" style="font-size: 1.8rem; margin-top: 4rem;">
+        Karya Anda
+      </h3>
+      {
+        memberWorks.length > 0 ? (
+          <div class="profile-gallery-grid">
+            {memberWorks.map((item) => (
+              <div class="gallery-item">
+                <img
+                  src={item.image_url.replace(
+                    "/upload/",
+                    "/upload/f_auto,q_auto/"
+                  )}
+                  alt={`Karya oleh ${item.artis}`}
+                  loading="lazy"
+                />
+                <div class="gallery-overlay">
+                  <h4>{item.design_type || "Poster Design"}</h4>
+                  <p>{item.likes} ❤️</p>
+                  <button
+                    class="action-btn reject"
+                    data-id={item.id}
+                    style="position: absolute; bottom: 1rem; right: 1rem; font-size: 0.8rem;"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p style="text-align: center; color: #aaa; margin-top: 2rem;">
+            Anda belum mengunggah karya apa pun.
+          </p>
+        )
+      }
+    </div>
+  </main>
+  <div id="delete-modal" class="modal">
+    <div class="modal-content">
+      <h3>Konfirmasi Hapus</h3>
+      <p
+        id="delete-confirmation-text"
+        style="margin: 1rem 0 2rem; color: #ccc;"
+      >
+        Anda yakin ingin menghapus karya ini?
+      </p>
+      <div class="modal-actions">
+        <button id="cancel-delete-btn" class="modal-button cancel">Batal</button
+        >
+        <button id="confirm-delete-btn" class="modal-button confirm-danger"
+          >Ya, Hapus</button
+        >
+      </div>
+    </div>
+  </div>
+  <div id="logout-modal" class="modal">
+    <div class="modal-content">
+      <h3>Konfirmasi Logout</h3>
+      <p style="margin: 1rem 0 2rem; color: #ccc;">
+        Anda yakin ingin keluar dari akun Anda?
+      </p>
+      <div class="modal-actions">
+        <button id="cancel-logout-btn" class="modal-button cancel">Batal</button
+        >
+        <button id="confirm-logout-btn" class="modal-button confirm-danger"
+          >Ya, Logout</button
+        >
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  // Ambil semua elemen yang kita butuhkan
+  const logoutBtn = document.getElementById("logout-btn");
+  const logoutModal = document.getElementById("logout-modal");
+  const cancelLogoutBtn = document.getElementById("cancel-logout-btn");
+  const confirmLogoutBtn = document.getElementById("confirm-logout-btn");
+  // --- LOGIKA BARU UNTUK MODAL HAPUS ---
+  const galleryGrid = document.querySelector(".profile-gallery-grid");
+  const deleteModal = document.getElementById("delete-modal");
+  const cancelDeleteBtn = document.getElementById("cancel-delete-btn");
+  const confirmDeleteBtn = document.getElementById("confirm-delete-btn");
+
+  let itemIdToDelete = null;
+
+  const closeDeleteModal = () => deleteModal.classList.remove("active");
+
+  if (galleryGrid) {
+    galleryGrid.addEventListener("click", (e) => {
+      if (e.target.classList.contains("reject")) {
+        itemIdToDelete = e.target.dataset.id;
+        deleteModal.classList.add("active");
+      }
+    });
+  }
+
+  cancelDeleteBtn.addEventListener("click", closeDeleteModal);
+  deleteModal.addEventListener("click", (e) => {
+    if (e.target === deleteModal) closeDeleteModal();
+  });
+
+  confirmDeleteBtn.addEventListener("click", async () => {
+    if (!itemIdToDelete) return;
+
+    try {
+      const response = await fetch(`/api/gallery/${itemIdToDelete}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        // Hapus item dari tampilan
+        window.location.href = `/member/profile?updated=${Date.now()}`;
+      } else {
+        alert("Gagal menghapus karya. Anda mungkin tidak memiliki izin.");
+      }
+    } catch (error) {
+      alert("Terjadi kesalahan jaringan.");
+    } finally {
+      closeDeleteModal();
+      itemIdToDelete = null;
+    }
+  });
+
+  // Saat tombol logout utama diklik, tampilkan modal
+  logoutBtn.addEventListener("click", () => {
+    logoutModal.classList.add("active");
+  });
+
+  // Fungsi untuk menutup modal
+  const closeModal = () => {
+    logoutModal.classList.remove("active");
+  };
+
+  // Tambahkan event untuk tombol 'Batal' dan klik di luar area modal
+  cancelLogoutBtn.addEventListener("click", closeModal);
+  logoutModal.addEventListener("click", (e) => {
+    if (e.target === logoutModal) {
+      closeModal();
+    }
+  });
+
+  // Saat tombol 'Ya, Logout' di dalam modal diklik, jalankan proses logout
+  confirmLogoutBtn.addEventListener("click", async () => {
+    // Tampilkan status loading
+    confirmLogoutBtn.textContent = "Logging out...";
+    confirmLogoutBtn.disabled = true;
+
+    // Panggil API untuk logout
+    const response = await fetch("/api/logout", { method: "POST" });
+
+    // API akan melakukan redirect, tapi kita bisa paksa redirect di sini jika perlu
+    if (response.redirected || response.ok) {
+      window.location.href = response.url || "/";
+    } else {
+      alert("Gagal untuk logout.");
+      confirmLogoutBtn.textContent = "Ya, Logout";
+      confirmLogoutBtn.disabled = false;
+    }
+  });
+</script>

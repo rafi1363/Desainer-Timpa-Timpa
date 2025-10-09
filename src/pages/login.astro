@@ -6,7 +6,7 @@ import Layout from "../layouts/Layout.astro";
   <main class="login-page">
     <div class="login-container">
       <img src="/assets/DTT-logo-White.png" alt="DTT Logo" class="login-logo" />
-      <h2 class="section-title">Admin Login</h2>
+      <h2 class="section-title">User Login</h2>
       <form id="login-form">
         <div class="form-group">
           <label for="username">Username</label>
@@ -19,12 +19,14 @@ import Layout from "../layouts/Layout.astro";
         <button type="submit" class="cta-button">Login</button>
         <p id="error-message" class="error-message"></p>
       </form>
+      <a href="/register" class="back-link">Belum punya akun? Daftar di sini</a>
       <a href="/" class="back-link">← Kembali ke Halaman Utama</a>
     </div>
   </main>
 </Layout>
 
-<script is:inline>
+<script>
+  import { showSpinner, hideOverlay } from "../scripts/ui-helper";
   const form = document.getElementById("login-form");
   const errorMessage = document.getElementById("error-message");
 
@@ -32,6 +34,7 @@ import Layout from "../layouts/Layout.astro";
     e.preventDefault();
     errorMessage.textContent = "";
     const formData = new FormData(form);
+    showSpinner("Mencoba masuk...");
 
     try {
       const response = await fetch("/api/login", {
@@ -40,13 +43,17 @@ import Layout from "../layouts/Layout.astro";
       });
 
       if (response.ok) {
-        window.location.href = "/admin"; // Alihkan ke admin jika berhasil
+        // [PERBAIKAN] Baca tujuan redirect dari API
+        const result = await response.json();
+        window.location.href = result.redirectTo; // Arahkan ke /admin atau /member/profile
       } else {
         const errorText = await response.text();
         errorMessage.textContent = errorText;
+        hideOverlay();
       }
     } catch (error) {
       errorMessage.textContent = "Tidak bisa terhubung ke server.";
+      hideOverlay();
     }
   });
 </script>
