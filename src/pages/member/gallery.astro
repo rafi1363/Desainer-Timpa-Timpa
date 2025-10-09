@@ -1,0 +1,179 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { Client } from "pg";
+import jwt from "jsonwebtoken";
+
+// Ambil semua data galeri dari database
+let galeri = [];
+const client = new Client({ connectionString: import.meta.env.DATABASE_URL });
+try {
+  await client.connect();
+  const galleryResult = await client.query(
+    "SELECT * FROM gallery ORDER BY created_at DESC"
+  );
+  galeri = galleryResult.rows;
+} catch (e) {
+  console.error("Gagal mengambil data galeri:", e);
+} finally {
+  await client.end();
+}
+
+// Ambil data user yang login dari middleware
+const user = Astro.locals.user;
+let userLikedItems = new Set();
+
+// Jika user login, ambil daftar karya yang sudah dia like
+if (user) {
+  try {
+    const client = new Client({
+      connectionString: import.meta.env.DATABASE_URL,
+    });
+    await client.connect();
+    const likedResult = await client.query(
+      "SELECT gallery_id FROM likes WHERE member_id = $1",
+      [user.id]
+    );
+    likedResult.rows.forEach((row) => userLikedItems.add(row.gallery_id));
+    await client.end();
+  } catch (e) {
+    console.error("Gagal mengambil data like:", e);
+  }
+}
+
+// Tambahkan properti 'isLiked' ke setiap item galeri
+galeri = galeri.map((item) => ({
+  ...item,
+  isLiked: userLikedItems.has(item.id),
+}));
+---
+
+<Layout>
+  {/* [PERUBAHAN] Menggunakan class dan struktur yang lebih sesuai */}
+  <main class="gallery-page-container">
+    <h2 class="section-title">Galeri Komunitas</h2>
+    <div style="text-align: center; margin-bottom: 3rem;">
+      <a href="/member/profile" class="secondary-button">← Kembali ke Profil</a>
+    </div>
+
+    <div class="gallery-grid">
+      {
+        galeri.map((item) => (
+          <div
+            class="gallery-item"
+            data-id={item.id}
+            data-timestamp={item.created_at}
+            data-type={item.design_type || ""}
+          >
+            <img
+              src={item.image_url}
+              alt={`Poster by @${item.artis}`}
+              loading="lazy"
+            />
+            <div class="gallery-overlay">
+              <h4>{item.design_type || "Poster Design"}</h4>
+              <p>
+                by{" "}
+                <a href={`/members/${item.artis}`} class="artist-link">
+                  @{item.artis}
+                </a>
+              </p>
+              <div class="stats">
+                <span class="likes-container">
+                  <button class:list={["like-btn", { liked: item.isLiked }]}>
+                    ❤️
+                  </button>
+                  <span class="like-count">{item.likes}</span>
+                </span>
+                <span class="timestamp" />
+              </div>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </main>
+</Layout>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const galleryItems = document.querySelectorAll(".gallery-item");
+
+    // --- Inisialisasi Kategori Waktu & Timestamp ---
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfWeek = new Date(today);
+    const dayOfWeek = today.getDay();
+    const diff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+    startOfWeek.setDate(diff);
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    galleryItems.forEach((item) => {
+      const timestamp = new Date(item.dataset.timestamp);
+      const timeCategories = [];
+
+      if (timestamp >= startOfMonth) timeCategories.push("monthly");
+      if (timestamp >= startOfWeek) timeCategories.push("weekly");
+      if (timestamp >= today) timeCategories.push("today");
+
+      item.dataset.timeCategories = timeCategories.join(" ");
+      item.querySelector(".timestamp").textContent =
+        `📅 ${timestamp.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}`;
+    });
+
+    // --- Logika Filter ---
+    const filterButtons = document.querySelectorAll(".filter-btn");
+    const applyFilter = (filterValue) => {
+      galleryItems.forEach((item) => {
+        const timeCats = item.dataset.timeCategories;
+        const typeCat = item.dataset.type;
+        let show = false;
+        if (filterValue === "all") {
+          show = true;
+        } else if (["today", "weekly", "monthly"].includes(filterValue)) {
+          show = timeCats.includes(filterValue);
+        } else {
+          show = typeCat === filterValue;
+        }
+        item.style.display = show ? "block" : "none";
+      });
+    };
+
+    filterButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        filterButtons.forEach((btn) => btn.classList.remove("active"));
+        button.classList.add("active");
+        applyFilter(button.dataset.filter);
+      });
+    });
+
+    // --- Logika Like/Unlike (Versi Member, tanpa localStorage) ---
+    galleryItems.forEach((item) => {
+      const likeButton = item.querySelector(".like-btn");
+      const likeCountSpan = item.querySelector(".like-count");
+      const id = item.dataset.id;
+
+      likeButton.addEventListener("click", async (e) => {
+        e.stopPropagation();
+
+        const isLiked = likeButton.classList.contains("liked");
+        const method = isLiked ? "DELETE" : "POST";
+
+        try {
+          const response = await fetch(`/api/like/${id}`, { method });
+
+          if (response.status === 401) {
+            window.location.href = "/login";
+            return;
+          }
+          if (!response.ok) throw new Error("Gagal melakukan aksi like.");
+
+          const data = await response.json();
+          likeCountSpan.textContent = data.likes;
+          likeButton.classList.toggle("liked");
+        } catch (error) {
+          console.error("Gagal mengirim like/unlike:", error);
+        }
+      });
+    });
+  });
+</script>

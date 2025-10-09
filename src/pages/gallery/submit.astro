@@ -47,6 +47,7 @@ import Layout from "../../layouts/Layout.astro";
 </Layout>
 
 <script>
+  import imageCompression from "browser-image-compression";
   import {
     showProgressBar,
     updateProgress,
@@ -136,7 +137,24 @@ import Layout from "../../layouts/Layout.astro";
       loadingText.textContent = "Mengunggah karya...";
 
       try {
-        const cloudinaryData = await uploadToCloudinary(fileInput.files[0]);
+        // --- [INI BAGIAN BARUNYA] PROSES KOMPRESI GAMBAR ---
+        const options = {
+          maxSizeMB: 4, // Maksimal ukuran file setelah kompresi (misal, 2MB)
+          maxWidthOrHeight: 1920, // Maksimal lebar atau tinggi gambar
+          useWebWorker: true, // Gunakan worker agar tidak membuat UI macet
+          onProgress: (p) => {
+            console.log(`Compressing: ${p}%`); // Opsional: lihat progres di console
+          },
+        };
+
+        console.log(
+          `Ukuran file asli: ${(file.size / 1024 / 1024).toFixed(2)} MB`
+        );
+        const compressedFile = await imageCompression(file, options);
+        console.log(
+          `Ukuran file setelah kompresi: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`
+        );
+        const cloudinaryData = await uploadToCloudinary(compressedFile);
         document.getElementById("image_url").value = cloudinaryData.secure_url;
 
         showSpinner("Menyimpan data..."); // Ganti ke spinner setelah upload selesai

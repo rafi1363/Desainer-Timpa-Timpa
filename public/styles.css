@@ -327,10 +327,16 @@ html {
 
 .gallery-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
+  gap: 1rem; /* Jarak antar gambar sedikit lebih kecil di mobile */
+
+  /* Mobile-first: Selalu tampilkan 2 kolom di layar kecil */
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.gallery-page-container {
+  padding: 4rem 1rem; /* Memberi jarak dari tepi layar */
   max-width: 1400px;
-  margin: 0 auto;
+  margin: 0 auto; /* Menengahkan konten di layar besar */
 }
 
 .gallery-logo {
@@ -1784,6 +1790,15 @@ th[data-sort].sorted-desc::after {
 
 /* Aturan untuk DESKTOP (layar 768px ke atas) */
 @media (min-width: 768px) {
+  .gallery-grid {
+    /* Kembali ke layout otomatis yang lebih lebar untuk desktop */
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+  }
+  .gallery-page-container {
+    /* Kembalikan padding ke ukuran semula untuk desktop */
+    padding: 4rem 2rem;
+  }
   .profile-gallery-grid {
     /* Ubah menjadi 5 kolom seperti sebelumnya */
     grid-template-columns: repeat(5, 1fr);
@@ -1913,5 +1928,56 @@ th[data-sort].sorted-desc::after {
   }
   50% {
     opacity: 0.5;
+  }
+}
+
+.password-wrapper {
+  position: relative;
+}
+
+.toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 1rem;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #888; /* Warna ikon */
+  transition: color 0.2s ease;
+}
+
+.toggle-password:hover {
+  color: #f7e479; /* Warna ikon saat disentuh mouse */
+}
+
+/* Atur ukuran SVG */
+.toggle-password svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Aturan tambahan untuk layar yang sangat sempit (di bawah 480px) */
+@media (max-width: 480px) {
+  /* Kecilkan padding halaman admin & member */
+  .admin-page,
+  .login-page {
+    padding: 2rem 1rem;
+  }
+
+  /* Kecilkan padding di dalam kartu dan tabel */
+  .stat-card,
+  .modal-content,
+  .form-container,
+  .login-container {
+    padding: 1.5rem;
+  }
+
+  /* Spesifik untuk tabel responsif */
+  .responsive-table td {
+    padding-left: 40%; /* Kurangi ruang untuk label */
+    font-size: 0.9rem;
+  }
+
+  .responsive-table td:before {
+    width: 35%; /* Kecilkan juga lebar label */
   }
 }

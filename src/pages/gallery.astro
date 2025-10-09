@@ -88,6 +88,24 @@ try {
     // --- Inisialisasi Halaman ---
     const galleryItems = document.querySelectorAll(".gallery-item");
 
+    let likedItems = [];
+    try {
+      likedItems = JSON.parse(localStorage.getItem("dtt_liked_gallery")) || [];
+    } catch (e) {
+      console.error("Gagal membaca liked items:", e);
+      likedItems = [];
+    }
+    // Fungsi untuk memperbarui status 'liked' di UI
+    const updateLikeStatus = (item) => {
+      const id = item.dataset.id;
+      const likeButton = item.querySelector(".like-btn");
+      if (likedItems.includes(id)) {
+        likeButton.classList.add("liked");
+      } else {
+        likeButton.classList.remove("liked");
+      }
+    };
+
     // 1. Proses setiap item untuk memberikan SEMUA kategori waktu yang relevan
     galleryItems.forEach((item) => {
       const timestamp = new Date(item.dataset.timestamp);
@@ -146,7 +164,7 @@ try {
       });
     });
 
-    // 2. Logika untuk Like/Unlike
+    // Event listener untuk tombol Like
     galleryItems.forEach((item) => {
       const likeButton = item.querySelector(".like-btn");
       const likeCountSpan = item.querySelector(".like-count");
@@ -154,8 +172,7 @@ try {
 
       likeButton.addEventListener("click", async (e) => {
         e.stopPropagation();
-
-        const isLiked = likeButton.classList.contains("liked");
+        const isLiked = likedItems.includes(id);
         const method = isLiked ? "DELETE" : "POST";
 
         try {
@@ -165,16 +182,15 @@ try {
             likeCountSpan.textContent = data.likes;
 
             if (isLiked) {
-              likeButton.classList.remove("liked");
               likedItems = likedItems.filter((likedId) => likedId !== id);
             } else {
-              likeButton.classList.add("liked");
               likedItems.push(id);
             }
             localStorage.setItem(
               "dtt_liked_gallery",
               JSON.stringify(likedItems)
             );
+            updateLikeStatus(item); // Perbarui UI setelah klik
           }
         } catch (error) {
           console.error("Gagal mengirim like/unlike:", error);

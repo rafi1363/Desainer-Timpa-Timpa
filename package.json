@@ -17,6 +17,7 @@
     "argon2": "^0.44.0",
     "astro": "^5.13.10",
     "bcrypt": "^6.0.0",
+    "browser-image-compression": "^2.0.2",
     "cloudinary": "^2.7.0",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.16.3",
