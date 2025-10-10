@@ -1,25 +1,58 @@
-<!-- Testimoni -->
-<section class="testimonials">
-  <h3 class="section-title">Apa Kata Anggota DTT</h3>
-  <div class="testimonial-card">
-    <p class="testimonial-quote">
-      Sebagai desainer grafis, saya sering merasa bekerja sendirian. Sejak masuk
-      DTT, semuanya berubah. Atmosfernya sangat suportif, dan saya jadi kenal
-      banyak desainer hebat dari seluruh Indonesia. Sekarang saya bahkan sedang
-      mengerjakan proyek kolaborasi bareng anggota lain yang saya temui di sini.
-      Benar-benar tempat untuk menemukan 'rekan kreasi'.
-    </p>
-    <div class="testimonial-author">
-      <img
-        class="author-avatar"
-        src="/assets/mancc.rv.jpg "
-        alt="profil user"
-      />
+---
+import { useTranslations } from "../i18n/utils.ts";
+import { Client } from "pg";
 
-      <div class="author-info">
-        <h4>mancc.rv</h4>
-        <p>Poster Desainer</p>
-      </div>
-    </div>
-  </div>
+const t = useTranslations(Astro);
+const currentLang = Astro.currentLocale;
+
+let testimonials = [];
+const client = new Client({ connectionString: import.meta.env.DATABASE_URL });
+
+try {
+  await client.connect();
+  // Ambil testimoni yang ditandai untuk ditampilkan (is_featured = true)
+  const result = await client.query(`
+    SELECT t.quote_id, t.quote_en, m.username
+    FROM testimonials t
+    JOIN members m ON t.member_id = m.id
+    WHERE t.is_featured = true
+    ORDER BY t.created_at DESC
+    LIMIT 3
+  `);
+  testimonials = result.rows;
+} catch (error) {
+  console.error("Gagal mengambil testimoni:", error);
+} finally {
+  await client.end();
+}
+---
+
+<section class="testimonials">
+  <h3 class="section-title">{t("testimonials.title")}</h3>
+
+  {
+    testimonials.length > 0 ? (
+      testimonials.map((item) => (
+        <div class="testimonial-card">
+          <p class="testimonial-quote">
+            {/* Logika untuk menampilkan terjemahan atau teks asli */}"
+            {currentLang === "en" ? item.quote_en : item.quote_id}"
+          </p>
+          <div class="testimonial-author">
+            <div class="public-avatar">
+              {item.username.charAt(0).toUpperCase()}
+            </div>
+            <div class="author-info">
+              <h4>{item.username}</h4>
+              <p>Member DTT</p>
+            </div>
+          </div>
+        </div>
+      ))
+    ) : (
+      <p style="text-align:center; color: #aaa;">
+        Belum ada testimoni untuk ditampilkan.
+      </p>
+    )
+  }
 </section>

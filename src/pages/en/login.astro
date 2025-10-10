@@ -1,6 +1,9 @@
 ---
-import Layout from "../layouts/Layout.astro";
-import { defaultLang } from "../i18n/ui.ts";
+import Layout from "../../layouts/Layout.astro";
+import { useTranslations } from "../../i18n/utils.ts";
+const t = useTranslations(Astro);
+import { defaultLang } from "../../i18n/ui.ts";
+
 const langPrefix =
   Astro.currentLocale === defaultLang ? "" : `/${Astro.currentLocale}`;
 ---
@@ -9,14 +12,14 @@ const langPrefix =
   <main class="login-page">
     <div class="login-container">
       <img src="/assets/DTT-logo-White.png" alt="DTT Logo" class="login-logo" />
-      <h2 class="section-title">User Login</h2>
+      <h2 class="section-title">{t("login.title")}</h2>
       <form id="login-form">
         <div class="form-group">
-          <label for="username">Username</label>
+          <label for="username">{t("login.label.username")}</label>
           <input type="text" id="username" name="username" required />
         </div>
         <div class="form-group">
-          <label for="password">Password</label>
+          <label for="password">{t("login.label.password")}</label>
           <div class="password-wrapper">
             <input type="password" id="password" name="password" required />
             <span id="toggle-password" class="toggle-password">
@@ -52,23 +55,24 @@ const langPrefix =
             </span>
           </div>
         </div>
-        <button type="submit" class="cta-button">Login</button>
+        <button type="submit" class="cta-button"
+          >{t("login.button.login")}</button
+        >
         <p id="error-message" class="error-message"></p>
       </form>
       <a href={`${langPrefix}/forgot-password`} class="back-link"
-        >Lupa Password?</a
+        >{t("login.link.forgot_password")}</a
       >
       <a href={`${langPrefix}/register`} class="back-link"
-        >Belum punya akun? Daftar di sini</a
+        >{t("login.link.register")}</a
       >
-      <a href={`${langPrefix}/`} class="back-link">← Kembali ke Halaman Utama</a
-      >
+      <a href={`${langPrefix}/`} class="back-link">{t("login.link.home")}</a>
     </div>
   </main>
 </Layout>
 
 <script>
-  import { showSpinner, hideOverlay } from "../scripts/ui-helper";
+  import { showSpinner, hideOverlay } from "../../scripts/ui-helper";
 
   // [GANTI BLOK LAMA DENGAN INI] Logika untuk show/hide password
   const togglePassword = document.getElementById("toggle-password");

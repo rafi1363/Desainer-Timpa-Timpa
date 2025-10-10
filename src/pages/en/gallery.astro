@@ -1,9 +1,11 @@
 ---
-import Layout from "../layouts/Layout.astro";
-import Header from "../components/Header.astro";
-import Footer from "../components/Footer.astro";
-import "../styles/gallery.css";
-import { defaultLang } from "../i18n/ui.ts";
+import Layout from "../../layouts/Layout.astro";
+import Header from "../../components/Header.astro";
+import Footer from "../../components/Footer.astro";
+import "../../styles/gallery.css";
+import { useTranslations } from "../../i18n/utils.ts";
+const t = useTranslations(Astro);
+import { defaultLang } from "../../i18n/ui.ts";
 
 const langPrefix =
   Astro.currentLocale === defaultLang ? "" : `/${Astro.currentLocale}`;
@@ -23,14 +25,26 @@ try {
   <Header />
   <main>
     <section class="gallery-section">
-      <h2 class="section-title">Galeri Desain DTT</h2>
+      <h2 class="section-title">{t("gallery.public.title")}</h2>
       <div class="gallery-filters">
-        <button class="filter-btn active" data-filter="all">Semua</button>
-        <button class="filter-btn" data-filter="today">Hari ini</button>
-        <button class="filter-btn" data-filter="weekly">Minggu ini</button>
-        <button class="filter-btn" data-filter="monthly">Arsip Bulanan</button>
-        <button class="filter-btn" data-filter="Kolaborasi">Kolaborasi</button>
-        <button class="filter-btn" data-filter="Tagwall">Tagwall</button>
+        <button class="filter-btn active" data-filter="all"
+          >{t("gallery.public.filter.all")}</button
+        >
+        <button class="filter-btn" data-filter="today"
+          >{t("gallery.public.filter.today")}</button
+        >
+        <button class="filter-btn" data-filter="weekly"
+          >{t("gallery.public.filter.weekly")}</button
+        >
+        <button class="filter-btn" data-filter="monthly"
+          >{t("gallery.public.filter.monthly")}</button
+        >
+        <button class="filter-btn" data-filter="Kolaborasi"
+          >{t("gallery.public.filter.collaboration")}</button
+        >
+        <button class="filter-btn" data-filter="Tagwall"
+          >{t("gallery.public.filter.tagwall")}</button
+        >
       </div>
 
       <div class="gallery-grid">

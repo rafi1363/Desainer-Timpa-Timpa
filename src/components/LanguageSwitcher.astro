@@ -1,0 +1,22 @@
+---
+import { languages, defaultLang } from "../i18n/ui";
+
+const { pathname } = Astro.url;
+
+const currentLang = pathname.startsWith("/en") ? "en" : "id";
+const basePath =
+  currentLang === "en" ? pathname.replace("/en", "") || "/" : pathname;
+---
+
+<div class="language-switcher">
+  {
+    Object.entries(languages).map(
+      ([lang, label]) =>
+        currentLang !== lang && (
+          <a href={lang === defaultLang ? basePath : `/${lang}${basePath}`}>
+            {label}
+          </a>
+        )
+    )
+  }
+</div>

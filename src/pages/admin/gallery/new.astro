@@ -60,71 +60,106 @@ import Layout from "../../../layouts/Layout.astro";
 </Layout>
 
 <script>
+  import imageCompression from "browser-image-compression";
   import {
     showProgressBar,
     updateProgress,
     showSpinner,
     hideOverlay,
-  } from "../../../scripts/ui-helper";
-  // Script untuk upload ke Cloudinary dan submit ke API
-  // ... (seluruh isi <script> Anda sebelumnya bisa disalin kembali ke sini, tidak ada perubahan di dalamnya)
-  const CLOUDINARY_CLOUD_NAME = "dsnvmjdni";
-  const CLOUDINARY_UPLOAD_PRESET = "hziqmdzw";
+  } from "../../../scripts/ui-helper.js";
 
-  const form = document.getElementById("gallery-form");
-  const fileInput = document.getElementById("image_file");
-  const hiddenUrlInput = document.getElementById("image_url");
+  document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("gallery-form");
+    const fileInput = document.getElementById("image_file");
+    const fileNameDisplay = document.getElementById("file-name-display");
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    showProgressBar("Mengunggah karya..."); // Gunakan fungsi helper
-    const submitButton = form.querySelector('button[type="submit"]');
-    submitButton.disabled = true;
-    submitButton.textContent = "Mengunggah...";
-
-    const file = fileInput.files[0];
-    if (!file) {
-      alert("Pilih file gambar terlebih dahulu.");
-      submitButton.disabled = false;
-      return;
-    }
-
-    const cloudinaryFormData = new FormData();
-    cloudinaryFormData.append("file", file);
-    cloudinaryFormData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-
-    try {
-      const cloudinaryRes = await fetch(
-        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-        {
-          method: "POST",
-          body: cloudinaryFormData,
-        }
-      );
-      if (!cloudinaryRes.ok) throw new Error("Gagal unggah ke Cloudinary.");
-
-      const cloudinaryData = await cloudinaryRes.json();
-      hiddenUrlInput.value = cloudinaryData.secure_url;
-
-      submitButton.textContent = "Menyimpan...";
-      showSpinner("Menyimpan data..."); // Ganti ke spinner setelah upload selesai
-
-      const appFormData = new FormData(form);
-      const appRes = await fetch("/api/gallery", {
-        method: "POST",
-        body: appFormData,
+    if (fileInput && fileNameDisplay) {
+      fileInput.addEventListener("change", () => {
+        fileNameDisplay.textContent =
+          fileInput.files.length > 0
+            ? fileInput.files[0].name
+            : "No file chosen";
       });
-
-      if (appRes.ok) {
-        window.location.href = "/admin/gallery";
-      } else {
-        const error = await appRes.json();
-        throw new Error(error.message);
-      }
-    } catch (error) {
-      alert("Terjadi kesalahan: " + error.message);
-      submitButton.disabled = false;
-      submitButton.textContent = "Simpan Gambar";
     }
+
+    const uploadToCloudinary = (file) => {
+      return new Promise((resolve, reject) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", "hziqmdzw");
+        const xhr = new XMLHttpRequest();
+        xhr.open(
+          "POST",
+          `https://api.cloudinary.com/v1_1/dsnvmjdni/image/upload`,
+          true
+        );
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            updateProgress((event.loaded / event.total) * 100);
+          }
+        };
+        xhr.onload = () => {
+          if (xhr.status === 200) resolve(JSON.parse(xhr.responseText));
+          else
+            reject(
+              new Error("Gagal unggah ke Cloudinary. Status: " + xhr.status)
+            );
+        };
+        xhr.onerror = () =>
+          reject(new Error("Terjadi kesalahan jaringan saat mengunggah."));
+        xhr.send(formData);
+      });
+    };
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const submitButton = form.querySelector('button[type="submit"]');
+      let file = fileInput.files[0];
+      if (!file) {
+        // Kita akan ganti 'alert' ini nanti
+        alert("Pilih file gambar terlebih dahulu.");
+        return;
+      }
+
+      submitButton.disabled = true;
+      showSpinner("Mempersiapkan gambar...");
+
+      try {
+        const options = {
+          maxSizeMB: 2,
+          maxWidthOrHeight: 1920,
+          useWebWorker: true,
+        };
+        const compressedFile = await imageCompression(file, options);
+
+        showProgressBar("Mengunggah karya...");
+
+        const cloudinaryData = await uploadToCloudinary(compressedFile);
+        document.getElementById("image_url").value = cloudinaryData.secure_url;
+
+        showSpinner("Menyimpan data...");
+
+        const appFormData = new FormData(form);
+        const appRes = await fetch("/api/gallery", {
+          method: "POST",
+          body: appFormData,
+        });
+
+        if (!appRes.ok) {
+          const error = await appRes.json();
+          throw new Error(error.message || "Gagal menyimpan data.");
+        }
+
+        // [PERBEDAAN UTAMA] Arahkan kembali ke galeri admin
+        window.location.href = `/admin/gallery?updated=${Date.now()}`;
+      } catch (error) {
+        hideOverlay(); // Sembunyikan loading dulu
+        showErrorModal(error.message); // Lalu tampilkan modal error
+        submitButton.disabled = false;
+        // Sesuaikan teks tombol kembali
+        submitButton.textContent = "Simpan Gambar"; // Untuk admin
+        // submitButton.textContent = "Unggah Karya"; // Untuk member
+      }
+    });
   });
 </script>

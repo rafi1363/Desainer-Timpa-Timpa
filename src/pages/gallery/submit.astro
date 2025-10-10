@@ -172,8 +172,12 @@ import Layout from "../../layouts/Layout.astro";
 
         window.location.href = `/member/profile?updated=${Date.now()}`;
       } catch (error) {
-        alert("Terjadi kesalahan: " + error.message);
-        hideOverlay(); // Sembunyikan jika gagal
+        hideOverlay(); // Sembunyikan loading dulu
+        showErrorModal(error.message); // Lalu tampilkan modal error
+        submitButton.disabled = false;
+        // Sesuaikan teks tombol kembali
+        submitButton.textContent = "Simpan Gambar"; // Untuk admin
+        // submitButton.textContent = "Unggah Karya"; // Untuk member
       }
     });
   });

@@ -1,14 +1,20 @@
+---
+import { useTranslations } from "../i18n/utils.ts";
+const t = useTranslations(Astro);
+import { defaultLang } from "../i18n/ui.ts";
+const langPrefix =
+  Astro.currentLocale === defaultLang ? "" : `/${Astro.currentLocale}`;
+---
+
 <!-- CTA Section -->
 <section class="cta-section">
-  <h3>Jangan Cuma Nonton. Ayo Ikut Nimpa!</h3>
-  <p>
-    Tunjukkan karyamu, dapatkan masukan jujur, dan lihat seberapa cepat skill-mu
-    berkembang. DTT adalah tempatnya para desainer yang serius untuk jadi lebih
-    baik, bukan sekadar memuji.
-  </p>
+  <h3>{t("cta.title")}</h3>
+  <p>{t("cta.body")}</p>
   <div class="cta-buttons">
-    <button class="cta-button">Gabung komunitas</button>
-    <a href="/daftar" class="secondary-button">Ayo Daftar Sekarang!</a>
+    <button class="cta-button">{t("cta.button_main")}</button>
+    <a href={`${langPrefix}/daftar`} class="secondary-button"
+      >{t("cta.button_secondary")}</a
+    >
   </div>
 </section>
 

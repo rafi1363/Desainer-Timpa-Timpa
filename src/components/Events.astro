@@ -1,4 +1,6 @@
 ---
+import { useTranslations } from "../i18n/utils.ts";
+const t = useTranslations(Astro);
 // --- BAGIAN PENGAMBILAN DATA ---
 // Kita akan mengambil data event dari API kita sendiri saat halaman di-build
 let events = [];
@@ -14,7 +16,7 @@ try {
 
 <!-- Events Section -->
 <section id="event" class="events">
-  <h3 class="section-title">Event</h3>
+  <h3 class="section-title">{t("events.title")}</h3>
   <div class="events-grid">
     {
       events.map((event) => {
@@ -42,9 +44,7 @@ try {
 
     {
       events.length === 0 && (
-        <p style="text-align: center; color: #aaa;">
-          Tidak ada event yang akan datang saat ini.
-        </p>
+        <p style="text-align: center; color: #aaa;">{t("events.no_events")}</p>
       )
     }
   </div>

@@ -33,3 +33,27 @@ export function updateProgress(percent) {
 export function hideOverlay() {
   loadingOverlay.classList.remove("active");
 }
+
+// [TAMBAHKAN FUNGSI BARU INI]
+const errorModal = document.getElementById("error-modal");
+const errorMessageText = document.getElementById("error-message-text");
+const closeErrorModalBtn = document.getElementById("close-error-modal-btn");
+
+export function showErrorModal(
+  message = "Terjadi kesalahan yang tidak diketahui."
+) {
+  errorMessageText.textContent = message;
+  errorModal.classList.add("active");
+}
+
+// Tambahkan event listener untuk tombol tutup
+closeErrorModalBtn.addEventListener("click", () => {
+  errorModal.classList.remove("active");
+});
+
+// Tutup juga saat area gelap diklik
+errorModal.addEventListener("click", (e) => {
+  if (e.target === errorModal) {
+    errorModal.classList.remove("active");
+  }
+});

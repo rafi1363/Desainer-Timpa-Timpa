@@ -1,0 +1,98 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { Client } from "pg";
+
+let testimonials = [];
+const client = new Client({ connectionString: import.meta.env.DATABASE_URL });
+try {
+  await client.connect();
+  const result = await client.query(`
+        SELECT t.*, m.username FROM testimonials t
+        JOIN members m ON t.member_id = m.id
+        ORDER BY t.created_at DESC
+    `);
+  testimonials = result.rows;
+} catch (error) {
+  console.error(error);
+} finally {
+  await client.end();
+}
+---
+
+<Layout>
+  <main class="admin-page">
+    <div class="admin-header">
+      <h2 class="section-title">Kelola Testimoni</h2>
+      <a href="/admin" class="secondary-button">← Kembali</a>
+    </div>
+
+    <div class="table-container responsive-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Testimoni</th>
+            <th>Status</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="testimonials-table-body">
+          {
+            testimonials.map((item) => (
+              <tr data-id={item.id}>
+                <td data-label="Username">@{item.username}</td>
+                <td data-label="Testimoni" style="white-space: normal;">
+                  {item.quote_id}
+                </td>
+                <td data-label="Status">
+                  {item.is_featured ? "Ditampilkan" : "Disembunyikan"}
+                </td>
+                <td data-label="Aksi">
+                  <button
+                    class="action-btn toggle-featured"
+                    data-featured={item.is_featured.toString()}
+                  >
+                    {item.is_featured ? "Sembunyikan" : "Tampilkan"}
+                  </button>
+                </td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+  </main>
+</Layout>
+
+<script>
+  document
+    .getElementById("testimonials-table-body")
+    .addEventListener("click", async (e) => {
+      if (e.target.classList.contains("toggle-featured")) {
+        const button = e.target;
+        const row = button.closest("tr");
+        const id = row.dataset.id;
+        const isCurrentlyFeatured = button.dataset.featured === "true";
+
+        button.disabled = true;
+        button.textContent = "Memproses...";
+
+        try {
+          const response = await fetch(`/api/testimonials/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ is_featured: !isCurrentlyFeatured }),
+          });
+
+          if (!response.ok) throw new Error("Gagal memperbarui status.");
+
+          // Refresh halaman untuk melihat perubahan
+          window.location.reload();
+        } catch (error) {
+          alert(error.message);
+          button.disabled = false;
+          // Kembalikan teks tombol ke semula (tidak diimplementasikan di sini untuk singkatnya)
+        }
+      }
+    });
+</script>

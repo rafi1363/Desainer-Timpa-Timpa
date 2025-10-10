@@ -1,0 +1,70 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { useTranslations } from "../../i18n/utils";
+const t = useTranslations(Astro);
+---
+
+<Layout>
+  <main class="login-page">
+    <div class="form-container">
+      <h2 class="section-title">Tulis Testimoni</h2>
+      <p style="text-align: center; color: #aaa; margin-bottom: 2rem;">
+        Bagikan pengalaman Anda selama bergabung dengan DTT. Testimoni terbaik
+        akan kami tampilkan di halaman utama!
+      </p>
+      <form id="testimonial-form">
+        <div class="form-group">
+          <label for="quote_id">Testimoni Anda (dalam Bahasa Indonesia)</label>
+          <textarea
+            id="quote_id"
+            name="quote_id"
+            rows="6"
+            required
+            placeholder="Ceritakan pengalamanmu..."></textarea>
+        </div>
+        <div class="form-actions">
+          <a href="/member/profile" class="secondary-button">Batal</a>
+          <button type="submit" class="cta-button">Kirim Testimoni</button>
+        </div>
+      </form>
+    </div>
+  </main>
+</Layout>
+
+<script>
+  import {
+    showSpinner,
+    hideOverlay,
+    showErrorModal,
+  } from "../../scripts/ui-helper";
+
+  const form = document.getElementById("testimonial-form");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const submitButton = form.querySelector('button[type="submit"]');
+
+    showSpinner("Mengirim testimoni...");
+    submitButton.disabled = true;
+
+    try {
+      const formData = new FormData(form);
+      const response = await fetch("/api/testimonials", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Gagal mengirim testimoni.");
+      }
+
+      // Jika berhasil, arahkan kembali ke profil
+      window.location.href = "/member/profile";
+    } catch (error) {
+      hideOverlay();
+      showErrorModal(error.message);
+      submitButton.disabled = false;
+    }
+  });
+</script>

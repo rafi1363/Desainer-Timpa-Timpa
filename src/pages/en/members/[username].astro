@@ -1,0 +1,109 @@
+---
+import Layout from "../../../layouts/Layout.astro";
+import { Client } from "pg";
+import { useTranslations } from "../../../i18n/utils.ts";
+const t = useTranslations(Astro);
+const { username } = Astro.params;
+import { defaultLang } from "../../../i18n/ui.ts";
+
+const langPrefix =
+  Astro.currentLocale === defaultLang ? "" : `/${Astro.currentLocale}`;
+
+let memberData = null;
+let memberWorks = [];
+
+const clientConfig = { connectionString: import.meta.env.DATABASE_URL };
+const client = new Client(clientConfig);
+
+try {
+  await client.connect();
+
+  // Ambil data profil member dari tabel 'members'
+  const memberResult = await client.query(
+    "SELECT * FROM members WHERE username = $1",
+    [username]
+  );
+
+  // Jika member tidak ditemukan, arahkan ke halaman 404
+  if (memberResult.rowCount === 0) {
+    return Astro.redirect("/404");
+  }
+  memberData = memberResult.rows[0];
+
+  // Jika member ditemukan, ambil semua karyanya dari tabel 'gallery'
+  const worksResult = await client.query(
+    "SELECT * FROM gallery WHERE artis = $1 ORDER BY created_at DESC",
+    [username]
+  );
+  memberWorks = worksResult.rows;
+} catch (error) {
+  console.error("Gagal mengambil data profil publik:", error);
+} finally {
+  await client.end();
+}
+---
+
+<Layout>
+  <main class="admin-page">
+    {
+      memberData && (
+        <div
+          class="public-profile-header"
+          style="text-align: center; margin-bottom: 4rem;"
+        >
+          {/* Kita belum punya foto profil di tabel member, jadi untuk sekarang kita bisa tampilkan inisial */}
+          <div class="public-avatar">
+            {memberData.username.charAt(0).toUpperCase()}
+          </div>
+          <h2 class="section-title" style="margin-bottom: 0.5rem;">
+            @{memberData.username}
+          </h2>
+          <p style="color: #aaa;">
+            {t("profile.public.member_since")}{" "}
+            {new Date(memberData.created_at).toLocaleDateString("id-ID", {
+              month: "long",
+              year: "numeric",
+            })}
+          </p>
+          <a
+            href={`${langPrefix}/gallery`}
+            class="secondary-button"
+            style="margin-top: 1.5rem;"
+          >
+            {t("profile.public.back_to_gallery")}
+          </a>
+        </div>
+      )
+    }
+
+    <div class="profile-gallery-section">
+      <h3 class="section-title" style="font-size: 1.8rem;">
+        {t("profile.public.works_by")}
+        {memberData?.username}
+      </h3>
+      {
+        memberWorks.length > 0 ? (
+          <div class="profile-gallery-grid">
+            {memberWorks.map((item) => (
+              <div class="gallery-item">
+                <img
+                  src={item.image_url}
+                  alt={`Karya oleh ${item.artis}`}
+                  loading="lazy"
+                />
+                <div class="gallery-overlay">
+                  <h4>{item.design_type || "Poster Design"}</h4>
+                  <p>{item.likes} ❤️</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p style="text-align: center; color: #aaa; margin-top: 2rem;">
+            {t("profile.public.no_works")}
+          </p>
+        )
+      }
+    </div>
+  </main>
+</Layout>

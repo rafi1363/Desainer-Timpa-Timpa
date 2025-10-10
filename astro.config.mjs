@@ -5,4 +5,11 @@ import vercel from "@astrojs/vercel";
 export default defineConfig({
   output: "server", // atau 'hybrid'
   adapter: vercel(),
+
+  i18n: {
+    // Bahasa default website Anda
+    defaultLocale: "id",
+    // Bahasa yang didukung
+    locales: ["id", "en"],
+  },
 });

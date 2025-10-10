@@ -97,6 +97,8 @@ galeri = galeri.map((item) => ({
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const galleryItems = document.querySelectorAll(".gallery-item");
+    const isTouchDevice =
+      "ontouchstart" in window || navigator.maxTouchPoints > 0;
 
     // --- Inisialisasi Kategori Waktu & Timestamp ---
     const now = new Date();
@@ -106,6 +108,27 @@ galeri = galeri.map((item) => ({
     const diff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
     startOfWeek.setDate(diff);
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    if (isTouchDevice) {
+      const galleryItems = document.querySelectorAll(".gallery-item");
+
+      galleryItems.forEach((item) => {
+        item.addEventListener("click", (e) => {
+          // Mencegah link terbuka jika pengguna mengetuk area lain di kartu
+          if (!e.target.closest("a") && !e.target.closest("button")) {
+            // Toggle class 'mobile-hover' pada kartu yang diketuk
+            item.classList.toggle("mobile-hover");
+          }
+
+          // Nonaktifkan 'mobile-hover' dari kartu lain
+          galleryItems.forEach((otherItem) => {
+            if (otherItem !== item) {
+              otherItem.classList.remove("mobile-hover");
+            }
+          });
+        });
+      });
+    }
 
     galleryItems.forEach((item) => {
       const timestamp = new Date(item.dataset.timestamp);

@@ -175,10 +175,12 @@ import Layout from "../layouts/Layout.astro";
         hideOverlay();
       }
     } catch (error) {
-      alert("Terjadi kesalahan: " + error.message);
+      hideOverlay(); // Sembunyikan loading dulu
+      showErrorModal(error.message); // Lalu tampilkan modal error
       submitButton.disabled = false;
-      submitButton.textContent = "Kirim Pendaftaran";
-      hideOverlay();
+      // Sesuaikan teks tombol kembali
+      submitButton.textContent = "Simpan Gambar"; // Untuk admin
+      // submitButton.textContent = "Unggah Karya"; // Untuk member
     }
   });
 </script>

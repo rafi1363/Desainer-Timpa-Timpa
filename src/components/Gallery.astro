@@ -3,6 +3,12 @@ import { getImage } from "astro:assets";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
+import { useTranslations } from "../i18n/utils.ts";
+const t = useTranslations(Astro);
+import { defaultLang } from "../i18n/ui.ts";
+
+const langPrefix =
+  Astro.currentLocale === defaultLang ? "" : `/${Astro.currentLocale}`;
 
 // [PERUBAHAN] Mengambil data dari API, bukan lagi file lokal
 let galeri = [];
@@ -19,7 +25,7 @@ try {
 ---
 
 <section id="galeri" class="gallery">
-  <h3 class="section-title">Karya Terbaru</h3>
+  <h3 class="section-title">{t("gallery.title")}</h3>
 
   <div class="swiper-container">
     <div class="swiper">
@@ -46,7 +52,9 @@ try {
     </div>
   </div>
   <div class="gallery-link-wrapper">
-    <a href="/gallery" class="cta-button">Lihat Semua Karya</a>
+    <a href={`${langPrefix}/gallery`} class="cta-button"
+      >{t("gallery.button")}</a
+    >
   </div>
 </section>
 

@@ -1,12 +1,24 @@
 import { defineMiddleware } from "astro:middleware";
 import jwt from "jsonwebtoken";
+import { languages, defaultLang } from "./i18n/ui";
 
 export const onRequest = defineMiddleware(async (context, next) => {
-  const { url, cookies, redirect } = context;
+  const { url, cookies, redirect, request } = context;
 
   const isAdminRoute = url.pathname.startsWith("/admin");
   const isMemberRoute = url.pathname.startsWith("/member");
   const isSubmitRoute = url.pathname.startsWith("/gallery/submit");
+
+  // --- Logika Deteksi Bahasa untuk Pengunjung Baru ---
+  const langCookie = cookies.get("language")?.value;
+  if (!langCookie && url.pathname === "/") {
+    const acceptLanguage = request.headers.get("accept-language");
+    if (acceptLanguage && acceptLanguage.startsWith("en")) {
+      // Jika browser pengguna berbahasa Inggris, arahkan ke /en
+      cookies.set("language", "en", { path: "/" });
+      return redirect("/en");
+    }
+  }
 
   if (!isAdminRoute && !isMemberRoute && !isSubmitRoute) {
     return next();
@@ -46,6 +58,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return redirect("/login");
   }
 
-  console.log("Hasil: Akses diizinkan.");
+  // console.log("Hasil: Akses diizinkan.");
   return next();
 });
