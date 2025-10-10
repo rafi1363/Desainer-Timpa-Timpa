@@ -1099,7 +1099,7 @@ tbody tr:hover {
 @media (max-width: 400px) {
   .gallery-link-wrapper .cta-button {
     padding: 0.8rem 1.5rem; /* Kecilkan padding kanan-kiri */
-    font-size: 0.85rem; /* Kecilkan ukuran font */
+    font-size: 0.8rem; /* Kecilkan ukuran font */
   }
 }
 
@@ -1153,6 +1153,16 @@ tbody tr:hover {
   .form-actions .secondary-button {
     width: 100%;
     text-align: center;
+  }
+  .swiper-slide {
+    /* Gunakan persentase agar ukurannya fleksibel */
+    width: 65% !important;
+    height: auto !important;
+    aspect-ratio: 4 / 5; /* Jaga rasio aspek gambar */
+  }
+  .swiper-container {
+    /* Kurangi padding agar carousel lebih lebar */
+    padding: 4rem 0rem;
   }
 }
 
