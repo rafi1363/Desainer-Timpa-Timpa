@@ -190,6 +190,12 @@ header {
   height: 50px;
 }
 
+/* 1. Pastikan container tombolnya berada di tengah */
+.gallery-link-wrapper {
+  text-align: center;
+  margin-top: 3rem; /* Beri jarak dari carousel di atasnya */
+}
+
 .nav {
   display: flex;
   gap: 1.5rem;
@@ -1086,6 +1092,14 @@ tbody tr:hover {
     ); /* Sedikit beda background untuk mobile */
     padding: 1rem;
     text-align: center;
+  }
+}
+
+/* 2. Aturan khusus untuk mengecilkan tombol di layar sangat sempit */
+@media (max-width: 400px) {
+  .gallery-link-wrapper .cta-button {
+    padding: 0.8rem 1.5rem; /* Kecilkan padding kanan-kiri */
+    font-size: 0.85rem; /* Kecilkan ukuran font */
   }
 }
 
