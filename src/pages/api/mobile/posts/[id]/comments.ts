@@ -6,7 +6,31 @@ import jwt from "jsonwebtoken";
 import { Expo } from "expo-server-sdk"; // <-- 1. Import Expo SDK
 
 const clientConfig = { connectionString: import.meta.env.DATABASE_URL };
-const expo = new Expo({ useFcmV1: true }); // Buat instance baru dari Expo
+// const expo = new Expo({ useFcmV1: true }); // Buat instance baru dari Expo
+
+// 1. Baca kredensial dari environment variable
+const credentialsJson = import.meta.env.GOOGLE_APPLICATION_CREDENTIALS;
+let expo;
+
+// 2. Cek apakah kredensial ada dan valid
+if (credentialsJson) {
+  try {
+    const serviceAccountCredentials = JSON.parse(credentialsJson);
+    // 3. Inisialisasi Expo dengan kredensial yang sudah diparsing
+    expo = new Expo({
+      useFcmV1: true,
+      serviceAccountCredentials,
+    });
+    console.log("[NOTIF LOG]: SDK Expo berhasil diinisialisasi dengan kredensial FCM V1.");
+  } catch (e) {
+    console.error("[NOTIF ERROR]: Gagal mem-parsing GOOGLE_APPLICATION_CREDENTIALS JSON.", e);
+    // Fallback ke metode lama jika parsing gagal, meskipun kemungkinan akan error
+    expo = new Expo();
+  }
+} else {
+  console.error("[NOTIF ERROR]: Environment variable GOOGLE_APPLICATION_CREDENTIALS tidak ditemukan.");
+  expo = new Expo();
+// }
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
