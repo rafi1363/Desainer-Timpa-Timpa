@@ -3,8 +3,11 @@
 import type { APIRoute } from "astro";
 import { Client } from "pg";
 import jwt from "jsonwebtoken";
+import { Expo } from "expo-server-sdk"; // <-- 1. Import Expo SDK
 
 const clientConfig = { connectionString: import.meta.env.DATABASE_URL };
+const expo = new Expo(); // Buat instance baru dari Expo
+
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -54,8 +57,10 @@ export const POST: APIRoute = async ({ params, request }) => {
     const token = authHeader.split(" ")[1];
     const decodedToken = jwt.verify(token, import.meta.env.JWT_SECRET) as {
       id: number;
+      username: string;
     };
-    const memberId = decodedToken.id;
+    const commenterId = decodedToken.id;
+    const commenterUsername = decodedToken.username;
 
     const { comment_text } = await request.json();
     if (!comment_text) {
@@ -69,14 +74,51 @@ export const POST: APIRoute = async ({ params, request }) => {
     // --- PERUBAHAN DIMULAI DI SINI ---
 
     // 1. Masukkan komentar baru dan dapatkan ID-nya
+    // --- Perubahan untuk Notifikasi Dimulai Di Sini ---
+
+    // 2. Dapatkan ID pemilik postingan
+    const postOwnerQuery = await client.query(
+      "SELECT member_id FROM posts WHERE id = $1",
+      [postId]
+    );
+    if (postOwnerQuery.rowCount === 0) {
+      return new Response(
+        JSON.stringify({ message: "Postingan tidak ditemukan" }),
+        { status: 404 }
+      );
+    }
+    const postOwnerId = postOwnerQuery.rows[0].member_id;
+
+    // 3. Simpan komentar baru
     const insertQuery =
       "INSERT INTO post_comments (post_id, member_id, comment_text) VALUES ($1, $2, $3) RETURNING id";
     const insertResult = await client.query(insertQuery, [
       postId,
-      memberId,
+      commenterId,
       comment_text,
     ]);
     const newCommentId = insertResult.rows[0].id;
+
+    // 4. Kirim notifikasi JIKA yang berkomentar bukan pemilik post
+    if (postOwnerId !== commenterId) {
+      const recipientQuery = await client.query(
+        "SELECT push_token FROM members WHERE id = $1",
+        [postOwnerId]
+      );
+      const pushToken = recipientQuery.rows[0]?.push_token;
+
+      if (pushToken && Expo.isExpoPushToken(pushToken)) {
+        const message = {
+          to: pushToken,
+          sound: "default" as const,
+          title: "Komentar Baru 📬",
+          body: `${commenterUsername} mengomentari postingan Anda.`,
+          data: { postId: postId }, // Data tambahan untuk navigasi
+        };
+        await expo.sendPushNotificationsAsync([message]);
+        console.log(`Notifikasi terkirim ke member ID: ${postOwnerId}`);
+      }
+    }
 
     // 2. Lakukan query kedua untuk mengambil komentar baru dengan format yang benar (termasuk data author)
     const selectQuery = `
