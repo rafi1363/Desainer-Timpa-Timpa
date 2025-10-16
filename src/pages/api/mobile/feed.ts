@@ -1,76 +1,68 @@
+// src/pages/api/mobile/feed.ts
+
 import type { APIRoute } from "astro";
 import { Client } from "pg";
 import jwt from "jsonwebtoken";
 
 const clientConfig = { connectionString: import.meta.env.DATABASE_URL };
 
-// Endpoint untuk mengambil 'feed' postingan
-export const GET: APIRoute = async ({ request, cookies }) => {
-  const token = cookies.get("auth_token")?.value;
-  if (!token) {
-    return new Response("Akses ditolak.", { status: 401 });
-  }
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
 
-  // Mengambil parameter untuk paginasi dari URL, misal: /api/mobile/feed?page=1&limit=10
-  const url = new URL(request.url);
-  const page = parseInt(url.searchParams.get("page") || "1", 10);
-  const limit = parseInt(url.searchParams.get("limit") || "10", 10);
-  const offset = (page - 1) * limit;
+export const OPTIONS: APIRoute = async () => {
+  return new Response(null, { status: 204, headers: CORS_HEADERS });
+};
 
+export const GET: APIRoute = async ({ request }) => {
   const client = new Client(clientConfig);
+
   try {
-    const decoded = jwt.verify(token, import.meta.env.JWT_SECRET) as {
+    const authHeader = request.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ message: "Akses ditolak" }), {
+        status: 401,
+        headers: CORS_HEADERS,
+      });
+    }
+
+    const token = authHeader.split(" ")[1];
+    const decodedToken = jwt.verify(token, import.meta.env.JWT_SECRET) as {
       id: number;
     };
-    const currentUserId = decoded.id;
+    const memberId = decodedToken.id;
 
     await client.connect();
 
-    // Ini adalah query SQL yang kompleks untuk mengambil semua data dalam satu panggilan
     const query = `
       SELECT
-        p.id,
-        p.caption,
-        p.created_at,
-        p.likes_count,
-        m.username AS "authorUsername",
-        -- Cek apakah pengguna saat ini sudah menyukai post ini
-        EXISTS(SELECT 1 FROM post_likes pl WHERE pl.post_id = p.id AND pl.member_id = $1) AS "isLikedByMe",
-        -- Gabungkan semua gambar post menjadi satu array JSON
-        (
-          SELECT json_agg(json_build_object('id', pi.id, 'imageUrl', pi.image_url) ORDER BY pi.sort_order)
-          FROM post_images pi
-          WHERE pi.post_id = p.id
-        ) AS images,
-        -- Ambil 2 komentar terbaru untuk preview
-        (
-          SELECT json_agg(json_build_object('id', pc.id, 'text', pc.comment_text, 'username', c_m.username) ORDER BY pc.created_at ASC)
-          FROM (
-            SELECT * FROM post_comments WHERE post_id = p.id ORDER BY created_at DESC LIMIT 2
-          ) pc
-          JOIN members c_m ON pc.member_id = c_m.id
-        ) AS "recentComments"
-      FROM
-        posts p
-      JOIN
-        members m ON p.member_id = m.id
-      ORDER BY
-        p.created_at DESC
-      LIMIT $2 OFFSET $3;
+          p.id,
+          p.caption,
+          p.created_at,
+          p.likes_count,
+          (SELECT COUNT(*) FROM post_comments pc WHERE pc.post_id = p.id) AS comments_count,
+          (SELECT json_agg(json_build_object('image_url', pi.image_url)) FROM post_images pi WHERE pi.post_id = p.id) AS images,
+          json_build_object('id', m.id, 'username', m.username, 'avatar_url', NULL) AS author,
+          EXISTS(SELECT 1 FROM post_likes pl WHERE pl.post_id = p.id AND pl.member_id = $1) AS is_liked_by_user
+      FROM posts p
+      JOIN members m ON p.member_id = m.id
+      ORDER BY p.created_at DESC;
     `;
 
-    const result = await client.query(query, [currentUserId, limit, offset]);
+    const result = await client.query(query, [memberId]);
 
-    // Membersihkan data null dari recentComments jika tidak ada komentar
-    const feedData = result.rows.map((post) => ({
-      ...post,
-      recentComments: post.recentComments || [],
-    }));
-
-    return new Response(JSON.stringify(feedData), { status: 200 });
+    return new Response(JSON.stringify(result.rows), {
+      status: 200,
+      headers: { "Content-Type": "application/json", ...CORS_HEADERS },
+    });
   } catch (error) {
-    console.error("Gagal mengambil feed:", error);
-    return new Response("Terjadi kesalahan di server.", { status: 500 });
+    console.error("Feed API Error:", error);
+    return new Response(
+      JSON.stringify({ message: "Terjadi kesalahan pada server" }),
+      { status: 500, headers: CORS_HEADERS }
+    );
   } finally {
     await client.end();
   }
