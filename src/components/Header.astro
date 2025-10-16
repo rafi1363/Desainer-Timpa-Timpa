@@ -3,6 +3,7 @@
 import { useTranslations } from "../i18n/utils.ts";
 import LanguageSwitcher from "./LanguageSwitcher.astro";
 import { defaultLang } from "../i18n/ui.ts"; // Impor bahasa default
+import ThemeToggle from "./ThemeToggle.astro";
 
 const t = useTranslations(Astro); // Otomatis mendeteksi bahasa saat ini (id atau en)
 
@@ -14,13 +15,19 @@ const langPrefix =
 <!-- Header Section -->
 <header id="beranda">
   <a href={langPrefix || "/"}>
-    {/* Link logo juga dibuat dinamis */}
+    {/* Logo Putih untuk Dark Mode (default) */}
     <img
-      class="gallery-logo"
+      class="gallery-logo logo-dark"
       src="/assets/DTT-logo-White.png"
       alt="logo DTT"
-    /></a
-  >
+    />
+    {/* Logo Hitam untuk Light Mode (awalnya disembunyikan) */}
+    <img
+      class="gallery-logo logo-light"
+      src="/assets/DTT-logo-Black.png"
+      alt="logo DTT"
+    />
+  </a>
 
   <button class="hamburger">
     <span class="bar"></span>

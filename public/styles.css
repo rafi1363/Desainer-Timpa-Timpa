@@ -6,13 +6,13 @@
   color-scheme: dark; /* [TAMBAHKAN INI] */
 
   --color-primary: #111;
-  --color-secondary: #151515;
-  --color-surface: #1c1c1c;
+  --color-secondary: #1f2937; /* <-- Latar belakang kartu lebih cerah */
+  --color-surface: #1f2937; /* <-- Samakan untuk konsistensi */
   --color-surface-light: #2a2a2a;
-  --color-accent: #f7e479;
-  --color-accent-dark: #ffd700;
+  --color-accent: #38bdf8; /* <-- Biru Vibrant */
+  --color-accent-bright: #0ea5e9;
   --color-text-primary: #f0f0f0;
-  --color-text-secondary: #aaa;
+  --color-text-secondary: #9ca3af;
   --color-border: #333;
   --color-danger: #dc2626;
   --color-danger-hover: #b91c1c;
@@ -60,7 +60,7 @@ html {
   display: block;
   width: 100px;
   height: 3px;
-  background: linear-gradient(to right, var(--color-accent), transparent);
+  background: var(--color-accent);
   margin: 1rem auto 0;
 }
 
@@ -68,7 +68,7 @@ html {
   background: linear-gradient(
     90deg,
     var(--color-accent),
-    var(--color-accent-dark)
+    var(--color-accent-bright)
   );
   color: #000;
   border: none;
@@ -80,13 +80,13 @@ html {
   transition: all 0.3s ease;
   text-transform: uppercase;
   letter-spacing: 1px;
-  box-shadow: 0 4px 15px rgba(247, 228, 121, 0.3);
+  box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
   text-decoration: none;
 }
 
 .cta-button:hover {
   transform: translateY(-3px);
-  box-shadow: 0 7px 20px rgba(247, 228, 121, 0.4);
+  box-shadow: 0 7px 20px rgba(56, 189, 248, 0.4);
 }
 
 .secondary-button {
@@ -105,7 +105,7 @@ html {
 }
 
 .secondary-button:hover {
-  background: rgba(247, 228, 121, 0.1);
+  background: rgba(56, 189, 248, 0.1);
   transform: translateY(-3px);
 }
 
@@ -146,7 +146,7 @@ input:-webkit-autofill:active {
 .form-group textarea:focus {
   outline: none;
   border-color: var(--color-accent);
-  box-shadow: 0 0 10px rgba(247, 228, 121, 0.2);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
 }
 
 .form-group small {
@@ -172,7 +172,7 @@ header {
   gap: 2rem;
   padding: 0.5rem 2.5rem;
   background: linear-gradient(135deg, #1b1b1b 0%, #0f0f0f 100%);
-  border-bottom: 1px solid rgba(247, 228, 121, 0.1);
+  border-bottom: 1px solid rgba(56, 189, 248, 0.1);
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -214,7 +214,7 @@ header {
 
 .nav a:hover {
   color: var(--color-accent);
-  background: rgba(247, 228, 121, 0.1);
+  background: rgba(56, 189, 248, 0.1);
 }
 
 .hamburger {
@@ -254,7 +254,7 @@ header {
 
 footer {
   padding: 4rem 2rem 2rem;
-  background: #000;
+  background: var(--color-primary);
 }
 
 .footer-grid {
@@ -306,8 +306,7 @@ footer {
 .hero {
   padding: 5rem 2rem;
   text-align: center;
-  background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.9)),
-    url("URL_GAMBAR_ANDA") center/cover no-repeat;
+  background-color: var(--color-primary);
   animation: zoom-in-out 30s linear infinite;
 }
 @keyframes zoom-in-out {
@@ -347,7 +346,7 @@ footer {
 /* Features Section */
 .features {
   padding: 5rem 2rem;
-  background: #0a0a0a;
+  background: var(--color-primary);
 }
 
 .features-grid {
@@ -367,14 +366,14 @@ footer {
   border-radius: 16px;
   text-align: center;
   transition: all 0.3s ease;
-  border: 1px solid rgba(247, 228, 121, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.1);
   position: relative;
   overflow: hidden;
 }
 .feature-card:hover {
   transform: translateY(-10px);
-  box-shadow: 0 10px 30px rgba(247, 228, 121, 0.15);
-  border-color: rgba(247, 228, 121, 0.3);
+  box-shadow: 0 10px 30px rgba(56, 189, 248, 0.15);
+  border-color: rgba(56, 189, 248, 0.3);
 }
 .feature-icon {
   width: 80px;
@@ -385,8 +384,8 @@ footer {
   justify-content: center;
   background: linear-gradient(
     135deg,
-    rgba(247, 228, 121, 0.2),
-    rgba(255, 215, 0, 0.2)
+    rgba(56, 189, 248, 0.2),
+    rgba(77, 138, 255, 0.2)
   );
   border-radius: 50%;
   color: var(--color-accent);
@@ -408,7 +407,7 @@ footer {
 /* Gallery Section (Landing Page) */
 .gallery {
   padding: 5rem 2rem;
-  background: #000;
+  background: var(--color-primary);
 }
 
 /* Carousel Swiper */
@@ -442,7 +441,7 @@ footer {
 /* Events Section (Landing Page) */
 .events {
   padding: 5rem 2rem;
-  background: linear-gradient(135deg, #111, #222);
+  background: var(--color-surface);
 }
 .events-grid {
   max-width: 1000px;
@@ -487,8 +486,8 @@ footer {
 }
 .event-tag {
   display: inline-block;
-  background: rgba(247, 228, 121, 0.2);
-  color: var(--color-accent);
+  background: rgba(56, 189, 248, 0.2);
+  color: var(--color-accent-bright);
   padding: 0.3rem 1rem;
   border-radius: 20px;
   font-size: 0.85rem;
@@ -497,7 +496,7 @@ footer {
 /* === Perbaikan Tampilan Testimoni === */
 .testimonials {
   padding: 5rem 2rem;
-  background: #0a0a0a;
+  background: var(--color-primary);
 }
 
 .testimonial-card {
@@ -506,7 +505,7 @@ footer {
   padding: 2.5rem;
   margin: 2rem auto;
   max-width: 800px;
-  border: 1px solid rgba(247, 228, 121, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.1);
   position: relative;
 }
 
@@ -526,7 +525,7 @@ footer {
 .testimonial-quote::before {
   content: "“";
   font-size: 5rem;
-  color: rgba(247, 228, 121, 0.1);
+  color: rgba(56, 189, 248, 0.1);
   position: absolute;
   top: -1rem;
   left: 0;
@@ -572,9 +571,9 @@ footer {
 .cta-section {
   padding: 5rem 2rem;
   text-align: center;
-  background: linear-gradient(135deg, #1a1a1a, #0a0a0a);
-  border-top: 1px solid rgba(247, 228, 121, 0.2);
-  border-bottom: 1px solid rgba(247, 228, 121, 0.2);
+  background: var(--color-surface); /* <-- MENGGUNAKAN VARIABEL */
+  border-top: 1px solid var(--color-border); /* <-- MENGGUNAKAN VARIABEL */
+  border-bottom: 1px solid var(--color-border); /* <-- MENGGUNAKAN VARIABEL */
 }
 .cta-section h3 {
   font-size: 2.5rem;
@@ -584,7 +583,7 @@ footer {
 .cta-section p {
   max-width: 600px;
   margin: 0 auto 2.5rem;
-  color: #ccc;
+  color: var(--color-text-secondary); /* <-- MENGGUNAKAN VARIABEL */
   font-size: 1.1rem;
   line-height: 1.7;
 }
@@ -670,7 +669,7 @@ footer {
 }
 .gallery-item:hover {
   transform: scale(1.03);
-  box-shadow: 0 10px 30px rgba(247, 228, 121, 0.2);
+  box-shadow: 0 10px 30px rgba(56, 189, 248, 0.2);
 }
 .gallery-item:hover .gallery-overlay {
   transform: translateY(0);
@@ -776,7 +775,7 @@ footer {
   background-color: var(--color-surface);
   padding: 3rem;
   border-radius: 16px;
-  border: 1px solid rgba(247, 228, 121, 0.2);
+  border: 1px solid rgba(56, 189, 248, 0.2);
   width: 90%;
   max-width: 550px;
   text-align: center;
@@ -1204,7 +1203,7 @@ tbody tr:hover {
 /* Styling untuk tag di dalam tabel (misal: tipe event) */
 .event-tag {
   display: inline-block;
-  background: rgba(247, 228, 121, 0.2);
+  background: rgba(56, 189, 248, 0.2);
   color: var(--color-accent);
   padding: 0.3rem 1rem;
   border-radius: 20px;
@@ -1277,7 +1276,7 @@ tbody tr:hover {
 .custom-select-wrapper::after {
   content: "▼";
   font-size: 0.8rem;
-  color: #f7e479;
+  background: var(--color-surface);
   position: absolute;
   top: 50%;
   right: 1rem;
@@ -1337,4 +1336,245 @@ tbody tr:hover {
   font-size: 2.5rem;
   font-weight: 700;
   color: white;
+}
+
+/* Aturan baru untuk Tombol Tema yang melayang */
+.theme-toggle {
+  position: fixed; /* Kunci agar tombol tetap di layar saat scroll */
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 1000; /* Pastikan ia di atas elemen lain */
+
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.theme-toggle:hover {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+  transform: scale(1.1);
+}
+
+.theme-toggle svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* ==========================================================================
+   8. Light Mode Theme
+   ========================================================================== */
+
+html.light-mode .modal-content {
+  background-color: var(--color-secondary); /* Background putih */
+  border-color: var(--color-border);
+}
+
+/* Perbaikan Kartu Statistik */
+html.light-mode .stat-card {
+  background-color: var(--color-secondary);
+  border-color: var(--color-border);
+}
+html.light-mode .stat-card h4 {
+  color: var(--color-text-secondary);
+}
+html.light-mode .stat-card p {
+  color: var(--color-text-primary);
+}
+
+/* Perbaikan Tabel Admin di Light Mode */
+html.light-mode th {
+  background-color: #e5e7eb;
+  color: #374151;
+}
+html.light-mode td {
+  color: #1f2937;
+  border-bottom-color: #e5e7eb;
+}
+html.light-mode tbody tr:hover {
+  background-color: #f3f4f6;
+}
+
+/* Perbaikan Kartu Event di Light Mode */
+html.light-mode .event-card {
+  background: var(--color-secondary);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+html.light-mode .event-card:hover {
+  box-shadow: 0 7px 20px rgba(0, 0, 0, 0.1);
+}
+html.light-mode .event-title,
+html.light-mode .event-host,
+html.light-mode .event-desc {
+  color: var(--color-text-primary);
+}
+
+/* Perbaikan Teks Samar */
+html.light-mode .form-group label,
+html.light-mode .hero p,
+html.light-mode .testimonial-quote {
+  color: var(--color-text-secondary);
+}
+
+html.light-mode {
+  /* Ganti warna dasar */
+  --color-primary: #f9fafb; /* Off-white background */
+  --color-secondary: #ffffff; /* White for cards */
+  --color-surface: #f3f4f6;
+  --color-surface-light: #e5e7eb;
+  --color-border: #d1d5db;
+
+  /* Ganti warna teks */
+  --color-text-primary: #1f2937; /* Dark gray */
+  --color-text-secondary: #6b7280; /* Medium gray */
+
+  /* Ganti warna aksen (kita gunakan biru yang lebih gelap agar kontras) */
+  --color-accent: #0ea5e9;
+  --color-accent-bright: #0284c7;
+
+  /* Ubah warna header & footer */
+  --header-bg: rgba(255, 255, 255, 0.85);
+  --header-border: #e5e7eb;
+
+  /* Ubah warna tombol autofill */
+  --autofill-bg: #e5e7eb;
+}
+
+/* Penyesuaian spesifik untuk Light Mode */
+html.light-mode header {
+  background: var(--header-bg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom-color: var(--header-border);
+}
+
+html.light-mode .hamburger .bar {
+  background-color: var(--color-text-primary);
+}
+
+html.light-mode .nav.active {
+  background: var(--color-surface);
+}
+
+/* Perbaikan untuk autofill di light mode */
+html.light-mode input:-webkit-autofill,
+html.light-mode input:-webkit-autofill:hover,
+html.light-mode input:-webkit-autofill:focus,
+html.light-mode input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px var(--autofill-bg, #e5e7eb) inset !important;
+}
+
+/* Penyesuaian warna teks untuk link di nav dan footer */
+html.light-mode .nav a {
+  color: var(--color-text-secondary);
+}
+html.light-mode .nav a:hover {
+  color: var(--color-accent-bright);
+}
+html.light-mode .footer-links a {
+  color: var(--color-text-secondary);
+}
+html.light-mode .footer-links a:hover {
+  color: var(--color-accent-bright);
+}
+
+html.light-mode .gallery-overlay {
+  background: linear-gradient(to top, rgba(255, 255, 255, 0.95), transparent);
+}
+/* Pastikan warna teks overlay galeri juga berubah */
+html.light-mode .gallery-overlay h4,
+html.light-mode .gallery-overlay p,
+html.light-mode .gallery-overlay .stats {
+  color: var(--color-text-primary);
+}
+
+html.light-mode .modal-content h2,
+html.light-mode .modal-content h3,
+html.light-mode .modal-content p {
+  color: var(--color-text-primary); /* Teks menjadi gelap */
+}
+
+html.light-mode .close-modal-button {
+  color: var(--color-text-secondary);
+}
+
+html.light-mode .close-modal-button:hover {
+  color: var(--color-text-primary);
+}
+
+/* Perbaikan untuk tombol di dalam modal */
+html.light-mode .modal-button.cancel {
+  border-color: #9ca3af;
+  color: #374151;
+}
+html.light-mode .modal-button.cancel:hover {
+  background-color: #f3f4f6;
+}
+
+html.light-mode .artist-link {
+  color: var(--color-accent-bright);
+}
+
+/* Ganti seluruh blok CSS untuk filter-btn dengan ini */
+.gallery-filters {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 3rem;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.filter-btn:hover {
+  color: var(--color-text-primary);
+  border-color: var(--color-accent);
+}
+
+.filter-btn.active {
+  background: linear-gradient(
+    90deg,
+    var(--color-accent),
+    var(--color-accent-bright)
+  );
+  color: #ffffff; /* Gunakan warna putih agar kontras */
+  border-color: var(--color-accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(56, 189, 248, 0.2);
+}
+
+/* Aturan untuk Logo Dark/Light Mode */
+
+/* Default (Dark Mode): Sembunyikan logo hitam */
+.logo-light {
+  display: none;
+}
+
+/* Light Mode: Sembunyikan logo putih, tampilkan logo hitam */
+html.light-mode .logo-dark {
+  display: none;
+}
+html.light-mode .logo-light {
+  display: block;
 }

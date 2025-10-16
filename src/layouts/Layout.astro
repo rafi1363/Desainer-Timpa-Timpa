@@ -1,9 +1,10 @@
 ---
-// File Layout.astro yang bersih
+import Footer from "../components/Footer.astro";
+import ThemeToggle from "../components/ThemeToggle.astro";
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="id">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,9 +16,32 @@
     />
 
     <link rel="stylesheet" href="/styles.css" />
+
+    <script is:inline>
+      const theme = (() => {
+        if (
+          typeof localStorage !== "undefined" &&
+          localStorage.getItem("theme")
+        ) {
+          return localStorage.getItem("theme");
+        }
+        if (window.matchMedia("(prefers-color-scheme: light)").matches) {
+          return "light";
+        }
+        return "dark";
+      })();
+
+      if (theme === "light") {
+        document.documentElement.classList.add("light-mode");
+      } else {
+        document.documentElement.classList.remove("light-mode");
+      }
+    </script>
   </head>
   <body>
     <slot />
+    <!-- <Footer /> -->
+    <ThemeToggle />
     <div id="loading-overlay" class="loading-overlay">
       <div class="spinner"></div>
 
