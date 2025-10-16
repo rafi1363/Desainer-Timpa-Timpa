@@ -1,4 +1,4 @@
-// src/pages/api/login.ts (REVISI)
+// src/pages/api/login.ts (REVISI FINAL)
 
 import type { APIRoute } from "astro";
 import { Client } from "pg";
@@ -13,23 +13,35 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
-// WAJIB: Tangani permintaan pre-flight OPTIONS
 export const OPTIONS: APIRoute = async () => {
   return new Response(null, { status: 204, headers: CORS_HEADERS });
 };
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   const client = new Client(clientConfig);
+  let username, password;
 
   try {
-    const body = await request.json();
-    // 1. UBAH DARI USERNAME KE EMAIL
-    const { email, password } = body;
+    // --- MEMBUAT API FLEKSIBEL ---
+    // Cek format data yang masuk
+    const contentType = request.headers.get("content-type");
 
-    // 2. PERBAIKI SYNTAX ERROR VALIDASI
-    if (!email || !password) {
+    if (contentType?.includes("application/json")) {
+      // Jika dari mobile app (JSON)
+      const body = await request.json();
+      username = body.username;
+      password = body.password;
+    } else {
+      // Jika dari website (Form Data)
+      const formData = await request.formData();
+      username = formData.get("username")?.toString();
+      password = formData.get("password")?.toString();
+    }
+    // ----------------------------
+
+    if (!username || !password) {
       return new Response(
-        JSON.stringify({ message: "Email dan password harus diisi" }),
+        JSON.stringify({ message: "Username dan password harus diisi" }),
         {
           status: 400,
           headers: CORS_HEADERS,
@@ -39,17 +51,17 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     await client.connect();
 
-    // Untuk aplikasi mobile, kita fokus ke login member
+    // Menggunakan USERNAME untuk query, bukan email
     const result = await client.query(
-      "SELECT * FROM members WHERE email = $1",
-      [email]
+      "SELECT * FROM members WHERE username = $1",
+      [username]
     );
 
     if (result.rowCount === 0) {
       return new Response(
-        JSON.stringify({ message: "Email atau password salah" }),
+        JSON.stringify({ message: "Username atau password salah" }),
         {
-          status: 401, // Unauthorized
+          status: 401,
           headers: CORS_HEADERS,
         }
       );
@@ -60,43 +72,35 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     if (!passwordMatch) {
       return new Response(
-        JSON.stringify({ message: "Email atau password salah" }),
+        JSON.stringify({ message: "Username atau password salah" }),
         {
-          status: 401, // Unauthorized
+          status: 401,
           headers: CORS_HEADERS,
         }
       );
     }
 
-    // Buat token
     const token = jwt.sign(
-      {
-        id: member.id,
-        username: member.username,
-        email: member.email,
-        role: "member",
-      },
+      { id: member.id, username: member.username, role: "member" },
       import.meta.env.JWT_SECRET,
       { expiresIn: "8h" }
     );
 
-    // Untuk website, tetap set cookie
     cookies.set("auth_token", token, {
       httpOnly: true,
       secure: import.meta.env.PROD,
       path: "/",
-      maxAge: 60 * 60 * 8, // 8 jam
+      maxAge: 60 * 60 * 8,
     });
 
-    // Hapus password hash dari objek sebelum dikirim ke client
     delete member.password_hash;
 
-    // 3. KIRIM RESPON YANG SESUAI UNTUK APLIKASI MOBILE
     return new Response(
       JSON.stringify({
         message: "Login berhasil",
         token: token,
         user: member,
+        redirectTo: "/member/profile", // Opsional untuk website
       }),
       {
         status: 200,
