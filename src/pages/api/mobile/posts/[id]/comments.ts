@@ -34,7 +34,11 @@ export const GET: APIRoute = async ({ params }) => {
       headers: CORS_HEADERS,
     });
   } catch (error) {
-    // ... penanganan error ...
+    console.error("Like API Error:", error);
+    return new Response(
+      JSON.stringify({ message: "Terjadi kesalahan pada server" }),
+      { status: 500, headers: CORS_HEADERS }
+    );
   } finally {
     await client.end();
   }
@@ -62,16 +66,40 @@ export const POST: APIRoute = async ({ params, request }) => {
     }
 
     await client.connect();
-    const query =
-      "INSERT INTO post_comments (post_id, member_id, comment_text) VALUES ($1, $2, $3) RETURNING *";
-    const result = await client.query(query, [postId, memberId, comment_text]);
+    // --- PERUBAHAN DIMULAI DI SINI ---
 
-    return new Response(JSON.stringify(result.rows[0]), {
+    // 1. Masukkan komentar baru dan dapatkan ID-nya
+    const insertQuery =
+      "INSERT INTO post_comments (post_id, member_id, comment_text) VALUES ($1, $2, $3) RETURNING id";
+    const insertResult = await client.query(insertQuery, [
+      postId,
+      memberId,
+      comment_text,
+    ]);
+    const newCommentId = insertResult.rows[0].id;
+
+    // 2. Lakukan query kedua untuk mengambil komentar baru dengan format yang benar (termasuk data author)
+    const selectQuery = `
+            SELECT c.id, c.comment_text, c.created_at, json_build_object('id', m.id, 'username', m.username) as author
+            FROM post_comments c
+            JOIN members m ON c.member_id = m.id
+            WHERE c.id = $1;
+        `;
+    const finalResult = await client.query(selectQuery, [newCommentId]);
+
+    // 3. Kirim kembali hasil query kedua
+    return new Response(JSON.stringify(finalResult.rows[0]), {
       status: 201,
       headers: CORS_HEADERS,
     });
+
+    // --- AKHIR PERUBAHAN ---
   } catch (error) {
-    // ... penanganan error ...
+    console.error("Like API Error:", error);
+    return new Response(
+      JSON.stringify({ message: "Terjadi kesalahan pada server" }),
+      { status: 500, headers: CORS_HEADERS }
+    );
   } finally {
     await client.end();
   }
