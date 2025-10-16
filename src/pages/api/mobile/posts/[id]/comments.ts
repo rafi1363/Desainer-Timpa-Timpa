@@ -6,7 +6,7 @@ import jwt from "jsonwebtoken";
 import { Expo } from "expo-server-sdk"; // <-- 1. Import Expo SDK
 
 const clientConfig = { connectionString: import.meta.env.DATABASE_URL };
-const expo = new Expo(); // Buat instance baru dari Expo
+const expo = new Expo({ useFcmV1: true }); // Buat instance baru dari Expo
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
