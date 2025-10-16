@@ -89,7 +89,63 @@ export const POST: APIRoute = async ({ params, request }) => {
     }
     const postOwnerId = postOwnerQuery.rows[0].member_id;
 
-    // 3. Simpan komentar baru
+    // --- Perubahan Logging Dimulai Di Sini ---
+    if (postOwnerId !== commenterId) {
+      console.log(
+        `[NOTIF LOG]: Mencoba mengirim notifikasi. Pengomentar: ${commenterId}, Pemilik Post: ${postOwnerId}`
+      );
+
+      const recipientQuery = await client.query(
+        "SELECT push_token FROM members WHERE id = $1",
+        [postOwnerId]
+      );
+      const pushToken = recipientQuery.rows[0]?.push_token;
+
+      console.log(
+        `[NOTIF LOG]: Push token yang ditemukan untuk pemilik: ${pushToken}`
+      );
+
+      if (pushToken && Expo.isExpoPushToken(pushToken)) {
+        const message = {
+          to: pushToken,
+          sound: "default" as const,
+          title: "Komentar Baru 📬",
+          body: `${commenterUsername} mengomentari postingan Anda.`,
+          data: { postId: postId },
+        };
+
+        try {
+          console.log("[NOTIF LOG]: Mengirim pesan ke server Expo...");
+          const tickets = await expo.sendPushNotificationsAsync([message]);
+          console.log("[NOTIF LOG]: Respons dari Expo:", tickets);
+
+          // Cek jika ada error dari Expo
+          const receipt = tickets[0];
+          if (receipt.status === "error") {
+            console.error(
+              `[NOTIF ERROR]: Gagal mengirim notifikasi: ${receipt.message}`
+            );
+            if (receipt.details && receipt.details.error) {
+              console.error(`[NOTIF ERROR]: Detail: ${receipt.details.error}`);
+            }
+          }
+        } catch (error) {
+          console.error(
+            "[NOTIF ERROR]: Terjadi error saat memanggil sendPushNotificationsAsync:",
+            error
+          );
+        }
+      } else {
+        console.log(
+          "[NOTIF LOG]: Token tidak valid atau tidak ditemukan. Notifikasi dilewati."
+        );
+      }
+    } else {
+      console.log(
+        "[NOTIF LOG]: Pengguna mengomentari postingannya sendiri. Notifikasi tidak dikirim."
+      );
+    }
+
     const insertQuery =
       "INSERT INTO post_comments (post_id, member_id, comment_text) VALUES ($1, $2, $3) RETURNING id";
     const insertResult = await client.query(insertQuery, [
