@@ -1,4 +1,4 @@
-// src/pages/api/login.ts (REVISI FINAL)
+// src/pages/api/login.ts (REVISI FINAL V2 - Dengan Admin Login)
 
 import type { APIRoute } from "astro";
 import { Client } from "pg";
@@ -22,22 +22,16 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   let username, password;
 
   try {
-    // --- MEMBUAT API FLEKSIBEL ---
-    // Cek format data yang masuk
     const contentType = request.headers.get("content-type");
-
     if (contentType?.includes("application/json")) {
-      // Jika dari mobile app (JSON)
       const body = await request.json();
       username = body.username;
       password = body.password;
     } else {
-      // Jika dari website (Form Data)
       const formData = await request.formData();
       username = formData.get("username")?.toString();
       password = formData.get("password")?.toString();
     }
-    // ----------------------------
 
     if (!username || !password) {
       return new Response(
@@ -51,13 +45,50 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     await client.connect();
 
-    // Menggunakan USERNAME untuk query, bukan email
-    const result = await client.query(
+    // --- LOGIKA LOGIN GABUNGAN ---
+
+    let user = null;
+    let userType = null;
+
+    // 1. Coba login sebagai MEMBER terlebih dahulu
+    const memberResult = await client.query(
       "SELECT * FROM members WHERE username = $1",
       [username]
     );
+    if (memberResult.rowCount > 0) {
+      const member = memberResult.rows[0];
+      const passwordMatch = await bcrypt.compare(
+        password,
+        member.password_hash
+      );
+      if (passwordMatch) {
+        user = member;
+        userType = "member";
+      }
+    }
 
-    if (result.rowCount === 0) {
+    // 2. Jika tidak berhasil sebagai member, coba sebagai ADMIN
+    if (!user) {
+      const adminResult = await client.query(
+        "SELECT * FROM admins WHERE username = $1",
+        [username]
+      );
+      if (adminResult.rowCount > 0) {
+        const admin = adminResult.rows[0];
+        const passwordMatch = await bcrypt.compare(
+          password,
+          admin.password_hash
+        );
+        if (passwordMatch) {
+          user = admin;
+          userType = "admin";
+        }
+      }
+    }
+    // ----------------------------
+
+    // Jika setelah dicek keduanya tetap tidak ada yang cocok
+    if (!user) {
       return new Response(
         JSON.stringify({ message: "Username atau password salah" }),
         {
@@ -67,21 +98,9 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       );
     }
 
-    const member = result.rows[0];
-    const passwordMatch = await bcrypt.compare(password, member.password_hash);
-
-    if (!passwordMatch) {
-      return new Response(
-        JSON.stringify({ message: "Username atau password salah" }),
-        {
-          status: 401,
-          headers: CORS_HEADERS,
-        }
-      );
-    }
-
+    // Buat token berdasarkan tipe user
     const token = jwt.sign(
-      { id: member.id, username: member.username, role: "member" },
+      { id: user.id, username: user.username, role: userType },
       import.meta.env.JWT_SECRET,
       { expiresIn: "8h" }
     );
@@ -93,14 +112,17 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       maxAge: 60 * 60 * 8,
     });
 
-    delete member.password_hash;
+    delete user.password_hash;
+
+    // Tentukan halaman redirect berdasarkan role
+    const redirectTo = userType === "admin" ? "/admin" : "/member/profile";
 
     return new Response(
       JSON.stringify({
         message: "Login berhasil",
         token: token,
-        user: member,
-        redirectTo: "/member/profile", // Opsional untuk website
+        user: user,
+        redirectTo: redirectTo,
       }),
       {
         status: 200,
