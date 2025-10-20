@@ -38,20 +38,24 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       role: string;
     };
 
-    const formData = await request.formData();
-    const image_url = formData.get("image_url") as string;
-    const design_type = formData.get("design_type") as string;
-
     let artis: string;
     let member_id: number | null = null;
+    let image_url: string;
+    let design_type: string;
 
     // --- INI LOGIKA KUNCINYA ---
     if (decoded.role === "member") {
-      // Jika yang mengunggah adalah MEMBER, 'artis' adalah username dari sesi login
+      // [PERBAIKAN] Ambil data dari request.json() untuk member
+      const data = await request.json();
+      image_url = data.image_url;
+      design_type = data.design_type;
       artis = decoded.username;
       member_id = decoded.id;
     } else if (decoded.role === "admin") {
-      // Jika yang mengunggah adalah ADMIN, 'artis' diambil dari input form
+      // Untuk admin, kita tetap gunakan FormData
+      const formData = await request.formData();
+      image_url = formData.get("image_url") as string;
+      design_type = formData.get("design_type") as string;
       artis = formData.get("artis") as string;
     } else {
       return new Response(

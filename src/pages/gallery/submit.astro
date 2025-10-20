@@ -159,10 +159,16 @@ import Layout from "../../layouts/Layout.astro";
 
         showSpinner("Menyimpan data..."); // Ganti ke spinner setelah upload selesai
 
-        const appFormData = new FormData(form);
+        const imageUrl = cloudinaryData.secure_url;
+        const designType = form.querySelector("#design_type").value;
+
         const appRes = await fetch("/api/gallery", {
           method: "POST",
-          body: appFormData,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            image_url: imageUrl,
+            design_type: designType,
+          }),
         });
 
         if (!appRes.ok) {
