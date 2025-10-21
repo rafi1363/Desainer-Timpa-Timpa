@@ -14,6 +14,59 @@ const CORS_HEADERS = {
 export const OPTIONS: APIRoute = async () =>
   new Response(null, { status: 204, headers: CORS_HEADERS });
 
+export const GET: APIRoute = async ({ params, request }) => {
+  const postId = parseInt(params.id, 10);
+  const client = new Client(clientConfig);
+  try {
+    const authHeader = request.headers.get("Authorization");
+    if (!authHeader)
+      return new Response(JSON.stringify({ message: "Akses ditolak" }), {
+        status: 401,
+        headers: CORS_HEADERS,
+      });
+
+    const token = authHeader.split(" ")[1];
+    const decodedToken = jwt.verify(token, import.meta.env.JWT_SECRET) as {
+      id: number;
+    };
+    const memberId = decodedToken.id;
+
+    await client.connect();
+    const query = `
+            SELECT
+                p.id, p.caption, p.created_at, p.likes_count,
+                (SELECT COUNT(*) FROM post_comments pc WHERE pc.post_id = p.id) AS comments_count,
+                (SELECT json_agg(json_build_object('image_url', pi.image_url)) FROM post_images pi WHERE pi.post_id = p.id) AS images,
+                json_build_object('id', m.id, 'username', m.username, 'avatar_url', NULL) AS author,
+                EXISTS(SELECT 1 FROM post_likes pl WHERE pl.post_id = p.id AND pl.member_id = $2) AS is_liked_by_user
+            FROM posts p
+            JOIN members m ON p.member_id = m.id
+            WHERE p.id = $1;
+        `;
+    const result = await client.query(query, [postId, memberId]);
+
+    if (result.rowCount === 0) {
+      return new Response(
+        JSON.stringify({ message: "Postingan tidak ditemukan" }),
+        { status: 404, headers: CORS_HEADERS }
+      );
+    }
+
+    return new Response(JSON.stringify(result.rows[0]), {
+      status: 200,
+      headers: CORS_HEADERS,
+    });
+  } catch (error) {
+    console.error("Get Post Detail API Error:", error);
+    return new Response(
+      JSON.stringify({ message: "Terjadi kesalahan pada server" }),
+      { status: 500, headers: CORS_HEADERS }
+    );
+  } finally {
+    await client.end();
+  }
+};
+
 export const DELETE: APIRoute = async ({ params, request }) => {
   const postId = parseInt(params.id, 10);
   if (isNaN(postId)) {
